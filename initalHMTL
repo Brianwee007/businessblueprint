@@ -1,0 +1,3225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riding School Revenue Optimizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brown:#2C1A0E; --mid:#5C3320; --tan:#B8862A; --tan-lt:#F5EDD0;
+  --cream:#FAF7F0; --white:#FFFEF9; --border:#DDD0B0; --muted:#8A7558;
+  --sage:#3D5E2C; --sage-lt:#E0EDD4; --rust:#8C2510; --rust-lt:#FAEAE0;
+  --sky:#1A4A80; --sky-lt:#DCE9F8; --gold:#9A7800; --gold-lt:#FDF5CC;
+  --ink:#1A1008;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--brown);padding:0;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.hdr-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:0}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#FAF7F0;padding:13px 0;white-space:nowrap}
+.logo em{color:var(--tan);font-style:normal}
+.phase-track{display:flex;flex:1;margin-left:28px;overflow-x:auto}
+.pt{padding:14px 12px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;border:none;background:none;font-family:'DM Sans',sans-serif}
+.pt:hover{color:rgba(255,255,255,.6)}
+.pt.active{color:var(--tan);border-bottom:2px solid var(--tan)}
+.pt.done{color:rgba(255,255,255,.5)}
+.prog-bar{height:3px;background:rgba(255,255,255,.08)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--tan),#D4A840);transition:width .4s ease}
+
+/* LAYOUT */
+.app{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+.phase{display:none}
+.phase.on{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* PHASE HEADERS */
+.ph{margin-bottom:24px;padding-bottom:18px;border-bottom:2px solid var(--border)}
+.ph-num{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--tan);margin-bottom:6px}
+.ph-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;line-height:1.2;color:var(--brown)}
+.ph-sub{font-size:13px;color:var(--muted);margin-top:5px;max-width:620px}
+
+/* CARDS */
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.card-h{background:var(--mid);color:#FAF7F0;padding:10px 16px;display:flex;align-items:center;gap:8px}
+.card-h .ico{font-size:16px}.card-h .ttl{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600}
+.card-h .sub{margin-left:auto;font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.08em}
+.card-b{padding:16px}
+
+/* FORM */
+.frow{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px}
+.fg.full{flex:1 0 100%}
+.fg.w2{flex:0 0 calc(50% - 7px)}
+.fg.w3{flex:0 0 calc(33% - 10px)}
+label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+input,select,textarea{padding:8px 11px;border:1.5px solid var(--border);background:var(--tan-lt);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--brown);border-radius:3px;transition:border-color .15s;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--tan);background:var(--white)}
+input[type=number]{text-align:right}
+textarea{resize:vertical;min-height:80px}
+.hint{font-size:11px;color:var(--muted);margin-top:2px}
+.dollar{position:relative}.dollar input{padding-left:22px}
+.dollar::before{content:'$';position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+
+/* RADIO GROUPS */
+.rgroup{display:flex;flex-wrap:wrap;gap:8px}
+.ropt{position:relative}
+.ropt input{position:absolute;opacity:0;width:0;height:0}
+.ropt label{display:block;padding:8px 16px;border:2px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--white);transition:all .15s}
+.ropt input:checked+label{background:var(--brown);color:#FAF7F0;border-color:var(--brown)}
+.ropt label:hover{border-color:var(--tan)}
+
+/* HORSE LIST */
+.horse-list{display:flex;flex-direction:column;gap:10px}
+.horse-row{display:grid;grid-template-columns:1fr 60px 60px 1fr auto;gap:10px;align-items:center;padding:10px;background:var(--cream);border:1px solid var(--border);border-radius:4px}
+.horse-row input{margin:0}
+.del-btn{background:none;border:1.5px solid var(--rust-lt);color:var(--rust);border-radius:3px;padding:5px 9px;cursor:pointer;font-size:13px;transition:all .15s}
+.del-btn:hover{background:var(--rust-lt)}
+.add-btn{padding:7px 16px;background:transparent;border:2px dashed var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;border-radius:3px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.add-btn:hover{border-color:var(--tan);color:var(--brown)}
+
+/* KPI STRIP */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{padding:14px 16px;border-radius:5px;border:1.5px solid var(--border);background:var(--white)}
+.kpi.hi{border-top:3px solid var(--sage);background:var(--sage-lt)}
+.kpi.lo{border-top:3px solid var(--rust);background:var(--rust-lt)}
+.kpi.mid-c{border-top:3px solid var(--tan)}
+.kpi.info{border-top:3px solid var(--sky)}
+.kl{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.kv{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;line-height:1;color:var(--brown)}
+.ks{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* INSIGHT BOXES */
+.ins{padding:12px 14px;border-radius:4px;margin:8px 0;display:flex;gap:10px;font-size:13px;line-height:1.6}
+.ins .ico{font-size:16px;flex-shrink:0;margin-top:1px}
+.ig{background:var(--sage-lt);border-left:3px solid var(--sage);color:#1A3A10}
+.iw{background:var(--gold-lt);border-left:3px solid var(--gold);color:#4A3000}
+.ib{background:var(--rust-lt);border-left:3px solid var(--rust);color:#5A1000}
+.ii{background:var(--sky-lt);border-left:3px solid var(--sky);color:#0A2850}
+
+/* COMPARISON TABLE */
+table.cmp{width:100%;border-collapse:collapse}
+table.cmp th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:2px solid var(--border);font-weight:700;text-align:left}
+table.cmp th.r{text-align:right}
+table.cmp td{padding:8px 12px;border-bottom:1px solid #EDE4C0;font-size:13px}
+table.cmp td.r{text-align:right;font-weight:600}
+table.cmp tr.tot td{background:var(--brown);color:#FAF7F0;font-weight:700;font-family:'Cormorant Garamond',serif;font-size:16px}
+table.cmp tr.tot td.r{color:var(--tan)}
+table.cmp tr.sec td{background:var(--cream);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 12px 4px}
+.pos{color:var(--sage)!important;font-weight:700}.neg{color:var(--rust)!important;font-weight:700}
+
+/* PRICING SUGGESTION */
+.pricing-band{display:flex;align-items:center;gap:10px;padding:12px;background:var(--tan-lt);border:1.5px solid var(--border);border-radius:4px;margin:8px 0}
+.band-range{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--brown);white-space:nowrap}
+.band-label{font-size:12px;color:var(--muted)}
+.band-pick{margin-left:auto;display:flex;align-items:center;gap:6px}
+.band-pick label{font-size:11px}
+
+/* PERKS */
+.perk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:10px 0}
+.perk-opt{position:relative}
+.perk-opt input{position:absolute;opacity:0}
+.perk-opt label{display:block;padding:8px 12px;border:1.5px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px;color:var(--ink);background:var(--white);transition:all .12s}
+.perk-opt input:checked+label{background:var(--sage-lt);border-color:var(--sage);color:var(--sage)}
+.perk-opt label:hover{border-color:var(--tan)}
+
+/* AGREEMENT */
+.agreement-box{background:var(--white);border:1.5px solid var(--border);border-radius:4px;padding:20px;font-size:13px;line-height:1.8;max-height:500px;overflow-y:auto;white-space:pre-wrap;font-family:'DM Sans',sans-serif}
+.agreement-box h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;margin:16px 0 8px;color:var(--brown)}
+.agreement-box p{margin-bottom:10px}
+.agreement-tabs{display:flex;gap:4px;margin-bottom:0}
+.atab{padding:8px 16px;border:1.5px solid var(--border);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;font-size:12px;font-weight:600;background:var(--cream);transition:all .15s;color:var(--muted)}
+.atab.active{background:var(--white);color:var(--brown);border-color:var(--border)}
+
+/* DISCLAIMER */
+.disclaimer-box{background:#FFF8E8;border:2px solid var(--tan);border-radius:6px;padding:20px;margin-bottom:20px}
+.disclaimer-box h3{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--brown);margin-bottom:10px}
+.sign-row{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.sign-row input[type=text]{flex:1;min-width:200px;background:var(--white)}
+.sign-row input[type=date]{width:160px;background:var(--white)}
+
+/* SCHEDULE VIZ */
+.schedule-grid{display:grid;gap:4px;margin:12px 0}
+.sg-day{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:4px 0}
+.sg-slot{border-radius:3px;padding:5px 8px;font-size:11px;font-weight:600;line-height:1.3}
+.sg-group{background:var(--sage-lt);color:var(--sage);border:1px solid #88BB60}
+.sg-private{background:var(--gold-lt);color:var(--gold);border:1px solid #CCA020}
+.sg-intro{background:var(--sky-lt);color:var(--sky);border:1px solid #6096D0}
+.sg-empty{background:var(--cream);border:1px dashed var(--border);color:var(--muted);font-size:10px}
+
+/* NAV */
+.nav{display:flex;gap:10px;margin-top:24px;padding-top:18px;border-top:1.5px solid var(--border);align-items:center}
+.sp{flex:1}
+.btn{padding:10px 22px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:none;border-radius:3px;transition:all .18s}
+.btn-p{background:var(--brown);color:#FAF7F0}.btn-p:hover{background:var(--mid)}
+.btn-s{background:transparent;border:2px solid var(--border);color:var(--muted)}.btn-s:hover{border-color:var(--brown);color:var(--brown)}
+.btn-g{background:var(--sage);color:#fff}.btn-g:hover{background:#2D4A1E}
+.btn-tan{background:var(--tan);color:#fff}.btn-tan:hover{background:var(--gold)}
+
+/* AI LOADING */
+.ai-loading{display:flex;align-items:center;gap:10px;padding:14px;background:var(--sky-lt);border-radius:4px;font-size:13px;color:var(--sky)}
+.spinner{width:18px;height:18px;border:2px solid rgba(26,74,128,.2);border-top-color:var(--sky);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MEMBERSHIP TABLE */
+.mem-table{width:100%;border-collapse:collapse;margin:10px 0}
+.mem-table th{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);text-align:left;background:var(--cream)}
+.mem-table th.r{text-align:right}
+.mem-table td{padding:7px 8px;border-bottom:1px solid #EDE4C0;vertical-align:middle}
+.mem-table tr:last-child td{border-bottom:none}
+.mem-table td input{padding:6px 9px;font-size:13px;margin:0}
+.mem-table .rev-cell{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:var(--sage);text-align:right;padding-right:10px;white-space:nowrap}
+.mem-total-row td{background:var(--tan-lt);font-weight:700;border-top:2px solid var(--border)}
+.mem-total-rev{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--brown);text-align:right;padding-right:10px}
+
+.lesson-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.lt-private{background:var(--gold-lt);color:var(--gold)}
+.lt-group{background:var(--sage-lt);color:var(--sage)}
+.lt-semi{background:#F0E4FA;color:#6820B0}
+.lt-eval{background:var(--sky-lt);color:var(--sky)}
+
+/* PRINT */
+@media print{.hdr,.nav,.phase-track,.prog-bar{display:none!important}.phase{display:block!important}}
+
+/* RESPONSIVE */
+@media(max-width:600px){.horse-row{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto}.fg.w2,.fg.w3{flex:1 0 100%}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="logo">🐴 Riding School <em>Revenue Optimizer</em></div>
+    <div class="phase-track" id="phaseTrack"></div>
+  </div>
+</div>
+<div class="prog-bar"><div class="prog-fill" id="progFill" style="width:16%"></div></div>
+
+<div class="app">
+
+<!-- ═══════════════════════════════════════════
+  PHASE 0 — CURRENT STATE
+═══════════════════════════════════════════ -->
+<div class="phase on" id="ph0">
+  <div class="ph">
+    <div class="ph-num">Phase 1 of 6</div>
+    <div class="ph-title">Your Current Situation</div>
+    <div class="ph-sub">Let's start with what you have now — pricing, horses, students, and schedule. We'll calculate your revenue and two key performance indicators every riding school should track.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">🏫</span><span class="ttl">Your School</span></div>
+    <div class="card-b">
+
+      <!-- Row 1: Name + Website -->
+      <div class="frow">
+        <div class="fg w2"><label>School Name</label><input type="text" id="schoolName" placeholder="Flying Changes Riding School"></div>
+        <div class="fg w2"><label>Website</label><input type="text" id="schoolWebsite" placeholder="www.flyingchanges.com"></div>
+      </div>
+
+      <!-- Row 2: Address -->
+      <div class="frow">
+        <div class="fg" style="flex:1 0 100%"><label>Street Address</label><input type="text" id="schoolAddress" placeholder="1234 Riding Lane"></div>
+      </div>
+      <div class="frow">
+        <div class="fg w3"><label>City</label><input type="text" id="schoolCity" placeholder="Austin"></div>
+        <div class="fg w3"><label>State / Province</label><input type="text" id="schoolState" placeholder="Texas" maxlength="50"></div>
+        <div class="fg w3"><label>ZIP / Postal Code</label><input type="text" id="schoolZip" placeholder="78701" maxlength="12"></div>
+      </div>
+
+      <!-- Row 3: Property -->
+      <div class="frow" style="align-items:flex-end">
+        <div class="fg w3">
+          <label>Property Status</label>
+          <select id="schoolPropertyStatus" onchange="renderPropertyPayment()">
+            <option value="own">Own</option>
+            <option value="rent">Rent</option>
+            <option value="lease_to_own">Lease to Own</option>
+          </select>
+        </div>
+        <div class="fg w3" id="propertyPaymentField">
+          <!-- rendered by renderPropertyPayment() -->
+        </div>
+        <div class="fg w3">
+          <label>Total Acres</label>
+          <input type="number" id="schoolAcres" min="0" step="0.1" placeholder="e.g. 25">
+        </div>
+      </div>
+
+      <!-- Row 4: Owners -->
+      <div style="margin-top:6px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Principal Owners</div>
+        <table style="width:100%;border-collapse:separate;border-spacing:0 5px">
+          <thead>
+            <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+              <th style="padding:0 8px 4px 10px;text-align:left">Owner Name</th>
+              <th style="padding:0 8px 4px;text-align:left;width:130px">Ownership %</th>
+              <th style="padding:0 8px 4px;text-align:left">Role / Title</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="ownersTableBody"></tbody>
+        </table>
+        <button class="add-btn" onclick="addOwner()" style="margin-top:4px">＋ Add Owner</button>
+        <div id="ownershipWarning" style="display:none;margin-top:8px;font-size:12px;color:var(--rust);padding:6px 10px;background:#FFF0ED;border-left:3px solid var(--rust);border-radius:0 3px 3px 0"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BARN ACCOMMODATIONS -->
+  <div class="card">
+    <div class="card-h"><span class="ico">🐴</span><span class="ttl">Horse Accommodations</span><span class="sub">Build your virtual barn</span></div>
+    <div class="card-b">
+
+      <!-- STEP 1: Setup -->
+      <div id="barnCountStep">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Name each barn and enter how many stalls it has, then add your shared paddocks, field board spots, and any other accommodations.</p>
+
+        <!-- BARNS -->
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">🏠 Barns &amp; Stalls</div>
+        <table style="width:100%;border-collapse:separate;border-spacing:0 6px;margin-bottom:4px" id="barnSetupTable">
+          <thead>
+            <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+              <th style="padding:0 8px 4px 10px;text-align:left">Barn Name</th>
+              <th style="padding:0 8px 4px;text-align:left;width:130px">Number of Stalls</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="barnSetupRows"></tbody>
+        </table>
+        <button class="add-btn" onclick="addBarnEntry()" style="margin-bottom:18px">＋ Add Another Barn</button>
+
+        <!-- SHARED ACCOMMODATIONS -->
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Other Accommodations (farm-wide)</div>
+        <table style="width:100%;border-collapse:separate;border-spacing:0 6px">
+          <thead>
+            <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+              <th style="padding:0 8px 4px 10px;text-align:left">Type</th>
+              <th style="padding:0 8px 4px;text-align:left;width:130px">How Many?</th>
+              <th style="padding:0 8px 4px;text-align:left">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:7px 10px 7px 12px;background:var(--sage-lt);border:1px solid #88BB60;border-right:none;border-radius:4px 0 0 4px"><span style="font-size:13px;font-weight:600;color:var(--sage)">🌿 Paddocks</span></td>
+              <td style="padding:7px 8px;background:var(--sage-lt);border-top:1px solid #88BB60;border-bottom:1px solid #88BB60">
+                <input type="number" id="barnCount_paddock" value="0" min="0" max="200" style="width:100%;padding:6px 8px;font-size:14px;text-align:center;border:1.5px solid #88BB60;background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)">
+              </td>
+              <td style="padding:7px 12px;background:var(--sage-lt);border:1px solid #88BB60;border-left:none;border-radius:0 4px 4px 0;font-size:12px;color:var(--muted)">Individual fenced turnout paddocks</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 10px 7px 12px;background:var(--gold-lt);border:1px solid #CCA020;border-right:none;border-radius:4px 0 0 4px"><span style="font-size:13px;font-weight:600;color:var(--gold)">🌾 Field Board</span></td>
+              <td style="padding:7px 8px;background:var(--gold-lt);border-top:1px solid #CCA020;border-bottom:1px solid #CCA020">
+                <input type="number" id="barnCount_field" value="0" min="0" max="200" style="width:100%;padding:6px 8px;font-size:14px;text-align:center;border:1.5px solid #CCA020;background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)">
+              </td>
+              <td style="padding:7px 12px;background:var(--gold-lt);border:1px solid #CCA020;border-left:none;border-radius:0 4px 4px 0;font-size:12px;color:var(--muted)">Open pasture / group field board spots</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 10px 7px 12px;background:var(--sky-lt);border:1px solid #80B8E8;border-right:none;border-radius:4px 0 0 4px"><span style="font-size:13px;font-weight:600;color:var(--sky)">✨ Other</span></td>
+              <td style="padding:7px 8px;background:var(--sky-lt);border-top:1px solid #80B8E8;border-bottom:1px solid #80B8E8">
+                <input type="number" id="barnCount_other" value="0" min="0" max="200" style="width:100%;padding:6px 8px;font-size:14px;text-align:center;border:1.5px solid #80B8E8;background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)">
+              </td>
+              <td style="padding:7px 12px;background:var(--sky-lt);border:1px solid #80B8E8;border-left:none;border-radius:0 4px 4px 0;font-size:12px;color:var(--muted)">Dry lots, run-in sheds, combos, etc.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+          <button class="btn btn-p" onclick="buildBarnFromCounts()" style="font-size:11px">Build My Barn →</button>
+          <span id="barnCountHint" style="font-size:12px;color:var(--rust)"></span>
+        </div>
+      </div>
+
+      <!-- STEP 2: Detail table -->
+      <div id="barnDetailStep" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <div id="barnCapacityBadge" style="font-size:13px;color:var(--muted)"></div>
+          <button class="btn btn-s" onclick="resetBarn()" style="font-size:10px;padding:5px 12px;margin-left:auto">↩ Change Counts</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 4px;min-width:620px">
+            <thead>
+              <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+                <th style="padding:0 6px 4px 10px;width:46px;text-align:center">#</th>
+                <th style="padding:0 6px 4px;width:155px;text-align:left">Location</th>
+                <th style="padding:0 6px 4px;width:165px;text-align:left">Use</th>
+                <th style="padding:0 6px 4px;width:155px;text-align:left">Horse Name</th>
+                <th style="padding:0 6px 4px;width:125px;text-align:left">Board / Month</th>
+                <th style="padding:0 6px 4px;text-align:left">Training / Month</th>
+              </tr>
+            </thead>
+            <tbody id="barnTableBody"></tbody>
+          </table>
+        </div>
+        <div id="barnSummary" style="display:none;margin-top:10px"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DYNAMIC PRICING CARD — changes based on charge model -->
+  <div class="card" id="pricingCard">
+    <div class="card-h"><span class="ico">💰</span><span class="ttl" id="pricingCardTitle">Current Lesson on Lesson Horse Pricing</span></div>
+    <div class="card-b" id="pricingCardBody">
+      <div class="frow" style="margin-bottom:4px">
+        <div class="fg w2"><label>How do you currently charge?</label>
+          <div class="rgroup" style="margin-top:4px">
+            <div class="ropt"><input type="radio" name="chargeModel" id="cm_lesson" value="per_lesson" checked><label for="cm_lesson">Per lesson (pay as you go)</label></div>
+            <div class="ropt"><input type="radio" name="chargeModel" id="cm_member" value="membership"><label for="cm_member">Monthly membership</label></div>
+            <div class="ropt"><input type="radio" name="chargeModel" id="cm_mix" value="mixed"><label for="cm_mix">Mix of both</label></div>
+          </div>
+        </div>
+      </div>
+      <div id="pricingCardDynamic">
+      <!-- dynamic pricing rendered by renderPricingCard() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- HIDDEN FIELDS used by calc regardless of mode (always present in DOM) -->
+  <div style="display:none">
+    <input type="number" id="pricePrivate" value="65">
+    <input type="number" id="priceGroup" value="40">
+    <input type="number" id="priceSemi" value="50">
+    <input type="number" id="priceEval" value="75">
+    <input type="number" id="lessonDur" value="60">
+    <input type="number" id="totalStudents" value="35">
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">🏟️</span><span class="ttl">Your Arenas</span><span class="sub">Add each arena or riding area</span></div>
+    <div class="card-b">
+      <table style="width:100%;border-collapse:separate;border-spacing:0 6px">
+        <thead>
+          <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+            <th style="padding:0 8px 4px 10px;text-align:left;width:160px">Arena Name</th>
+            <th style="padding:0 8px 4px;text-align:left;width:160px">Type</th>
+            <th style="padding:0 8px 4px;text-align:left;width:100px">Length (ft)</th>
+            <th style="padding:0 8px 4px;text-align:left;width:100px">Width (ft)</th>
+            <th style="padding:0 8px 4px;text-align:left;width:130px">Max Riders at Once</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="arenaTableBody"></tbody>
+      </table>
+      <button class="add-btn" onclick="addArena()" style="margin-top:6px">＋ Add Arena</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY LESSON SCHEDULE CALENDAR -->
+  <div class="card">
+    <div class="card-h"><span class="ico">📅</span><span class="ttl">Weekly Lesson Schedule</span><span class="sub">Typical week by arena · click any block to edit</span></div>
+    <div class="card-b" id="scheduleCardBody">
+
+      <!-- Top controls -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px">
+        <div class="fg" style="margin:0">
+          <label>Operating Hours</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <select id="schedDayStart" onchange="renderScheduleCalendar()" style="padding:5px 6px;font-size:12px">
+              <option value="6">6:00 AM</option><option value="7" selected>7:00 AM</option><option value="8">8:00 AM</option><option value="9">9:00 AM</option>
+            </select>
+            <span style="font-size:12px;color:var(--muted)">to</span>
+            <select id="schedDayEnd" onchange="renderScheduleCalendar()" style="padding:5px 6px;font-size:12px">
+              <option value="18">6:00 PM</option><option value="19">7:00 PM</option><option value="20" selected>8:00 PM</option><option value="21">9:00 PM</option><option value="22">10:00 PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg" style="margin:0">
+          <label>Weeks Open / Year</label>
+          <input type="number" id="weeksOpen" value="45" min="1" max="52" style="max-width:80px">
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="schedAddLesson()" style="font-size:11px;padding:7px 16px">＋ Add Lesson</button>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;align-items:center">
+        <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px">Lesson type:</span>
+        <span style="background:var(--gold-lt);border:1px solid #DDB840;border-radius:3px;padding:2px 8px;font-size:11px">🐴 Private</span>
+        <span style="background:var(--sage-lt);border:1px solid #88BB60;border-radius:3px;padding:2px 8px;font-size:11px">👥 Group</span>
+        <span style="background:#F0E4FA;border:1px solid #C090E8;border-radius:3px;padding:2px 8px;font-size:11px">👫 Semi-Private</span>
+        <span style="background:var(--sky-lt);border:1px solid #80B8E8;border-radius:3px;padding:2px 8px;font-size:11px">🔍 Eval</span>
+        <span style="font-size:10px;color:var(--muted);margin-left:4px">· Click any cell to add a lesson · Simultaneous lessons show side-by-side</span>
+      </div>
+
+      <!-- Calendar grid container -->
+      <div id="schedCalendar" style="overflow-x:auto"></div>
+
+      <!-- Weekly summary + horse hours -->
+      <div id="schedSummary" style="margin-top:14px"></div>
+      <div id="schedHorseHours" style="margin-top:10px"></div>
+
+      <!-- Hidden legacy inputs for downstream calc compatibility -->
+      <input type="hidden" id="wkPrivate" value="8">
+      <input type="hidden" id="wkGroup" value="12">
+      <input type="hidden" id="wkSemi" value="4">
+      <input type="hidden" id="wkEval" value="3">
+      <input type="hidden" id="groupRiders" value="4">
+      <input type="hidden" id="numInstructors" value="2">
+      <input type="hidden" id="instrRate" value="35">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">👩‍🏫</span><span class="ttl">Your Instructors & Staff</span><span class="sub">Add each teaching team member</span></div>
+    <div class="card-b">
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:separate;border-spacing:0 6px;min-width:700px">
+          <thead>
+            <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+              <th style="padding:0 8px 4px 10px;text-align:left;width:160px">Name</th>
+              <th style="padding:0 8px 4px;text-align:left;width:160px">Role</th>
+              <th style="padding:0 8px 4px;text-align:left;width:170px">Pay Type</th>
+              <th style="padding:0 8px 4px;text-align:left;width:90px">Tax Status</th>
+              <th style="padding:0 8px 4px;text-align:left;width:120px">Pay Rate / Amount</th>
+              <th style="padding:0 8px 4px;text-align:left;width:110px">Hours / Week</th>
+              <th style="padding:0 6px 4px;text-align:left">Est. Monthly Cost</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="instructorTableBody"></tbody>
+        </table>
+      </div>
+      <button class="add-btn" onclick="addInstructor()" style="margin-top:6px">＋ Add Instructor / Staff</button>
+      <div id="instructorTotalHint"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">🐴</span><span class="ttl">Your Lesson Horses</span><span class="sub">Add each horse</span></div>
+    <div class="card-b">
+      <div style="display:grid;grid-template-columns:1fr 60px 70px 1fr auto;gap:10px;padding:0 0 8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+        <span>Name</span><span>Age</span><span>Height</span><span>Hours / Week</span><span></span>
+      </div>
+      <div class="horse-list" id="horseList"></div>
+      <button class="add-btn" onclick="addHorse()" style="margin-top:10px">＋ Add Horse</button>
+    </div>
+  </div>
+
+  <div id="currentKpis"></div>
+
+  <div class="nav">
+    <div class="sp"></div>
+    <button class="btn btn-p" onclick="calcCurrentAndNext()">Calculate My Numbers →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+  PHASE 1 — DIAGNOSIS
+═══════════════════════════════════════════ -->
+<div class="phase" id="ph1">
+  <div class="ph">
+    <div class="ph-num">Phase 2 of 6</div>
+    <div class="ph-title">Your Numbers — Diagnosed</div>
+    <div class="ph-sub">Here's what your business is actually generating, and what your two most important performance indicators are telling us.</div>
+  </div>
+  <div id="diagKpis"></div>
+  <div id="diagInsights"></div>
+  <div id="diagMembership" style="margin-top:20px"></div>
+  <div class="nav">
+    <button class="btn btn-s" onclick="goTo(0)">← Back</button>
+    <div class="sp"></div>
+    <button class="btn btn-p" onclick="goTo(2)">Design My Membership →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+  PHASE 2 — MEMBERSHIP DESIGN
+═══════════════════════════════════════════ -->
+<div class="phase" id="ph2">
+  <div class="ph">
+    <div class="ph-num">Phase 3 of 6</div>
+    <div class="ph-title">Design Your Membership Program</div>
+    <div class="ph-sub">Answer a few questions and we'll suggest pricing for your three membership tiers, plus help you configure your policies.</div>
+  </div>
+
+  <div style="background:#FFF8E1;border:2px solid #F4C430;border-radius:8px;padding:20px 24px;margin-bottom:22px">
+    <div style="font-size:22px;font-weight:900;color:#7A5C00;letter-spacing:.02em;margin-bottom:10px">🛑 DON'T PANIC.</div>
+    <p style="font-size:14px;line-height:1.8;color:#5A4200;margin:0 0 10px">We are <strong>not</strong> suggesting you call your existing clients tomorrow and change their pricing. Don't do that.</p>
+    <p style="font-size:14px;line-height:1.8;color:#5A4200;margin:0 0 10px"><strong>Grandfather your current clients in.</strong> Let them stay on whatever arrangement they're on for now — they've earned that loyalty. The new pricing is for <em>new clients only</em> as you start bringing them in.</p>
+    <p style="font-size:14px;line-height:1.8;color:#5A4200;margin:0">When and whether to transition existing clients is a conversation for you and your coach. There's no rush — and doing it wrong costs you more than doing it slowly.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">💳</span><span class="ttl">Tier 1 — Once-a-Week Membership</span></div>
+    <div class="card-b">
+      <div id="tier1Suggestion"></div>
+      <div class="frow" style="margin-top:10px">
+        <div class="fg w3"><label>Your Price (Every 4 Weeks)</label><div class="dollar"><input type="number" id="t1Price" value="300" min="0" oninput="updateMembershipCalc()"></div></div>
+        <div class="fg w3"><label>Annual Pay Price (15% off)</label><div class="dollar"><input type="number" id="t1Annual" value="" min="0" placeholder="Auto-calc" oninput="updateMembershipCalc()"></div></div>
+        <div class="fg w3"><label>Lessons / Week</label><input type="number" id="t1Lessons" value="1" min="1" max="3" readonly style="background:#F0E8D0;color:var(--muted)"></div>
+      </div>
+      <div style="margin-top:10px"><label style="display:block;margin-bottom:6px">Perks included in Tier 1:</label>
+        <div class="perk-grid" id="t1Perks"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">💳💳</span><span class="ttl">Tier 2 — Twice-a-Week Membership</span></div>
+    <div class="card-b">
+      <div id="tier2Suggestion"></div>
+      <div class="frow" style="margin-top:10px">
+        <div class="fg w3"><label>Your Price (Every 4 Weeks)</label><div class="dollar"><input type="number" id="t2Price" value="600" min="0" oninput="updateMembershipCalc()"></div></div>
+        <div class="fg w3"><label>Annual Pay Price (15% off)</label><div class="dollar"><input type="number" id="t2Annual" value="" min="0" placeholder="Auto-calc" oninput="updateMembershipCalc()"></div></div>
+        <div class="fg w3"><label>Min Commitment</label><select id="t2Commit"><option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option></select></div>
+      </div>
+      <div style="margin-top:10px"><label style="display:block;margin-bottom:6px">Extra perks to justify Tier 2:</label>
+        <div class="perk-grid" id="t2Perks"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">🏆</span><span class="ttl">Tier 3 — Three-Times-a-Week (Half Lease)</span></div>
+    <div class="card-b">
+      <div id="tier3Suggestion"></div>
+      <div class="frow" style="margin-top:10px">
+        <div class="fg w3"><label>Your Price (Every 4 Weeks)</label><div class="dollar"><input type="number" id="t3Price" value="900" min="0" oninput="updateMembershipCalc()"></div></div>
+        <div class="fg w3"><label>Annual Pay Price (15% off)</label><div class="dollar"><input type="number" id="t3Annual" value="" min="0" placeholder="Auto-calc" oninput="updateMembershipCalc()"></div></div>
+        <div class="fg w3"><label>Min Commitment</label><select id="t3Commit"><option value="6" selected>6 months</option><option value="12">12 months</option></select></div>
+      </div>
+      <div style="margin-top:10px"><label style="display:block;margin-bottom:6px">Perks for top-tier members:</label>
+        <div class="perk-grid" id="t3Perks"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">📋</span><span class="ttl">Policies</span></div>
+    <div class="card-b">
+      <div class="frow">
+        <div class="fg full"><label>Makeup Lesson Policy</label>
+          <div class="rgroup" style="margin-top:4px">
+            <div class="ropt"><input type="radio" name="makeupPolicy" id="mp0" value="none"><label for="mp0">No makeups</label></div>
+            <div class="ropt"><input type="radio" name="makeupPolicy" id="mp1" value="1per_cycle" checked><label for="mp1">1 per billing cycle (48hr notice)</label></div>
+            <div class="ropt"><input type="radio" name="makeupPolicy" id="mp2" value="5tokens"><label for="mp2">5 tokens per year</label></div>
+          </div>
+        </div>
+      </div>
+      <div class="frow" style="margin-top:10px">
+        <div class="fg w2"><label>Closure Weeks Per Year</label>
+          <select id="closureWeeks">
+            <option value="4">4 weeks</option><option value="5">5 weeks</option><option value="6">6 weeks</option><option value="7" selected>7 weeks</option>
+          </select>
+        </div>
+        <div class="fg w2"><label>Cancellation Notice Required</label>
+          <select id="cancelNotice"><option value="30">30 days</option><option value="60" selected>60 days</option><option value="90">90 days</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="nav">
+    <button class="btn btn-s" onclick="goTo(1)">← Back</button>
+    <div class="sp"></div>
+    <button class="btn btn-p" onclick="goTo(3)">Generate Agreements →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+  PHASE 3 — AGREEMENTS
+═══════════════════════════════════════════ -->
+<div class="phase" id="ph3">
+  <div class="ph">
+    <div class="ph-num">Phase 4 of 6</div>
+    <div class="ph-title">Membership Agreements</div>
+    <div class="ph-sub">We'll generate three full membership agreements — one per tier — including a state-specific liability waiver. Please read and sign the acknowledgment below first.</div>
+  </div>
+
+  <div class="disclaimer-box">
+    <h3>⚖️ Important Legal Notice</h3>
+    <p style="font-size:13px;line-height:1.7;margin-bottom:10px">The membership agreements and liability waivers generated by this tool are <strong>templates for educational and planning purposes only</strong>. They are not a substitute for professional legal advice. Laws governing equine liability, membership contracts, and consumer protection vary significantly by state and jurisdiction.</p>
+    <p style="font-size:13px;line-height:1.7;margin-bottom:10px"><strong>Before using any of these documents with real clients, you must have them reviewed and approved by a licensed attorney in your state.</strong> The creators of this tool are not attorneys and make no representations about the legal sufficiency or enforceability of these templates in your jurisdiction.</p>
+    <p style="font-size:13px;line-height:1.7">By signing below, you acknowledge that you understand these are templates only, and that you will seek qualified legal counsel before using them.</p>
+    <div class="sign-row">
+      <input type="text" id="disclaimerName" placeholder="Your full name">
+      <input type="date" id="disclaimerDate">
+      <button class="btn btn-tan" onclick="signDisclaimer()">I Understand — Generate Agreements</button>
+    </div>
+    <div id="disclaimerStatus" style="margin-top:10px"></div>
+  </div>
+
+  <div id="agreementSection" style="display:none">
+    <div id="agreementLoading"></div>
+    <div id="agreementContent"></div>
+  </div>
+
+  <div class="nav">
+    <button class="btn btn-s" onclick="goTo(2)">← Back</button>
+    <div class="sp"></div>
+    <button class="btn btn-p" id="toScheduleBtn" onclick="goTo(4)" style="display:none">Build Goal Schedule →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+  PHASE 4 — GOAL SCHEDULE
+═══════════════════════════════════════════ -->
+<div class="phase" id="ph4">
+  <div class="ph">
+    <div class="ph-num">Phase 5 of 6</div>
+    <div class="ph-title">Goal Schedule</div>
+    <div class="ph-sub">Set your constraints below. We'll build a full sample calendar of what a maximized program looks like — then you can edit every lesson however you want.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">📅</span><span class="ttl">Days Open</span></div>
+    <div class="card-b">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px" id="goalDayToggles">
+        <!-- rendered by JS -->
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Click to close a day. Grey = closed.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="ico">⏰</span><span class="ttl">Scheduling Constraints</span></div>
+    <div class="card-b">
+
+      <!-- Schedule mode -->
+      <div class="frow" style="margin-bottom:4px">
+        <div class="fg w2">
+          <label>Build schedule around</label>
+          <select id="scheduleMode" onchange="goalToggleScheduleMode()">
+            <option value="full">Full day (7am–8pm all open days)</option>
+            <option value="peak" selected>Peak hours only (customizable below)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Peak hours editor — shown when mode=peak -->
+      <div id="peakHoursEditor" style="background:var(--gold-lt);border:1px solid #DDB840;border-radius:6px;padding:12px 14px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7A5C00;margin-bottom:10px">Peak Hours Definition</div>
+        <div class="frow">
+          <div class="fg w2">
+            <label>Weekday peak start (Mon–Fri)</label>
+            <select id="peakWdayStart">
+              <option value="7">7am</option><option value="8">8am</option><option value="9">9am</option>
+              <option value="10">10am</option><option value="11">11am</option><option value="12">12pm</option>
+              <option value="13">1pm</option><option value="14">2pm</option><option value="15">3pm</option>
+              <option value="16" selected>4pm</option><option value="17">5pm</option>
+            </select>
+          </div>
+          <div class="fg w2">
+            <label>Weekday peak end</label>
+            <select id="peakWdayEnd">
+              <option value="17">5pm</option><option value="18">6pm</option><option value="19">7pm</option>
+              <option value="20" selected>8pm</option>
+            </select>
+          </div>
+          <div class="fg w2">
+            <label>Weekend peak start (Sat–Sun)</label>
+            <select id="peakWkendStart">
+              <option value="7">7am</option><option value="8" selected>8am</option><option value="9">9am</option>
+              <option value="10">10am</option>
+            </select>
+          </div>
+          <div class="fg w2">
+            <label>Weekend peak end</label>
+            <select id="peakWkendEnd">
+              <option value="17">5pm</option><option value="18">6pm</option><option value="19">7pm</option>
+              <option value="20" selected>8pm</option>
+            </select>
+          </div>
+        </div>
+        <div id="peakHoursSummary" style="font-size:11px;color:#7A5C00;margin-top:6px"></div>
+      </div>
+
+      <!-- Facility -->
+      <div class="frow">
+        <div class="fg w3"><label>Number of Arenas</label><input type="number" id="numArenas" value="2" min="1" max="10" onchange="renderGoalCalendar()"></div>
+        <div class="fg w3"><label>Max Riders at Same Time</label><input type="number" id="maxSimult" value="8" min="1" max="30"></div>
+        <div class="fg w3"><label>Target Group Lesson Size</label><input type="number" id="goalGroupSize" value="5" min="2" max="10"></div>
+      </div>
+      <div class="frow">
+        <div class="fg w3"><label>Instructor Pay / Hour</label><div class="dollar"><input type="number" id="goalInstrRate" value="35" min="0" onchange="renderGoalResources()"></div></div>
+        <div class="fg w3"><label>Avg Lesson Duration (min)</label><input type="number" id="goalLessonDur" value="60" min="30" max="90" step="15"></div>
+        <div class="fg w3"><label>New Students / Month</label><input type="number" id="newPerMonth" value="6" min="0"></div>
+      </div>
+
+      <!-- Horse welfare -->
+      <div style="border-top:1px solid var(--border);margin:12px 0 10px;padding-top:12px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">🐴 Horse Welfare Limits</div>
+        <div class="frow">
+          <div class="fg w3">
+            <label>Max Hours / Week per Horse</label>
+            <input type="number" id="horseMaxWeek" value="10" min="1" max="40" onchange="renderGoalResources()">
+            <span class="hint">Typical school horse: 8–15 hrs/week</span>
+          </div>
+          <div class="fg w3">
+            <label>Max Hours / Day per Horse</label>
+            <input type="number" id="horseMaxDay" value="2" min="1" max="8" onchange="renderGoalResources()">
+            <span class="hint">Typical school horse: 2–4 hrs/day</span>
+          </div>
+          <div class="fg w3">
+            <label>Days Off per Horse per Week</label>
+            <input type="number" id="horseDaysOff" value="1" min="0" max="3" onchange="renderGoalResources()">
+            <span class="hint">Min 1 rest day recommended</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="scheduleLoading" style="display:none"></div>
+  <div id="scheduleOutput"></div>
+
+  <div class="nav">
+    <button class="btn btn-s" onclick="goTo(3)">← Back</button>
+    <div class="sp"></div>
+    <button class="btn btn-tan" onclick="buildGoalSchedule()">🗓️ Build Goal Schedule</button>
+    <button class="btn btn-p" id="toCompareBtn" onclick="goTo(5)" style="display:none">View Revenue Comparison →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+  PHASE 5 — REVENUE COMPARISON
+═══════════════════════════════════════════ -->
+<div class="phase" id="ph5">
+  <div class="ph">
+    <div class="ph-num">Phase 6 of 6</div>
+    <div class="ph-title">Current vs. Optimized Revenue</div>
+    <div class="ph-sub">Here's the full financial picture — what you're making now vs. what the optimized membership model and goal schedule could generate.</div>
+  </div>
+  <div id="comparisonOutput"></div>
+  <div class="nav">
+    <button class="btn btn-s" onclick="goTo(4)">← Back</button>
+    <div class="sp"></div>
+    <button class="btn btn-g" onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let horses = [];
+let nextHorseId = 1;
+let currentRevenue = 0;
+let goalRevenue = 0;
+let agreementsSigned = false;
+let agreementsGenerated = false;
+let scheduleBuilt = false;
+
+// ═══════════════════════════════════════════════
+// PHASE NAV
+// ═══════════════════════════════════════════════
+const PHASES = ['1 Current State','2 Diagnosis','3 Membership','4 Agreements','5 Goal Schedule','6 Compare'];
+
+function buildPhaseNav(){
+  document.getElementById('phaseTrack').innerHTML = PHASES.map((l,i) =>
+    `<button class="pt${i===0?' active':''}" id="pt${i}" onclick="goTo(${i})">${l}</button>`
+  ).join('');
+}
+
+function goTo(i){
+  document.querySelectorAll('.phase').forEach((p,j) => p.classList.toggle('on', j===i));
+  document.querySelectorAll('.pt').forEach((t,j) => {
+    t.classList.toggle('active', j===i);
+    t.classList.toggle('done', j<i);
+  });
+  document.getElementById('progFill').style.width = ((i+1)/6*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════
+// HORSE MANAGEMENT
+// ═══════════════════════════════════════════════
+function addHorse(name='', age='', height='', notes=''){
+  const id = nextHorseId++;
+  horses.push({id, name, age, height, notes});
+  renderHorses();
+}
+
+function removeHorse(id){
+  horses = horses.filter(h => h.id !== id);
+  renderHorses();
+}
+
+function renderHorses(){
+  const el = document.getElementById('horseList');
+  if(horses.length === 0){
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">No horses added yet.</div>';
+    return;
+  }
+  el.innerHTML = horses.map(h => `
+    <div class="horse-row">
+      <input type="text" value="${esc(h.name)}" placeholder="Horse name" onchange="updateHorse(${h.id},'name',this.value)">
+      <input type="number" value="${h.age||''}" placeholder="Age" min="1" max="35" onchange="updateHorse(${h.id},'age',this.value)" style="text-align:center">
+      <input type="text" value="${esc(h.height||'')}" placeholder='e.g. 15.2' onchange="updateHorse(${h.id},'height',this.value)" style="text-align:center">
+      <input type="number" value="${h.notes||''}" placeholder="e.g. 20" min="0" max="60" onchange="updateHorse(${h.id},'notes',this.value)" style="text-align:center">
+      <button class="del-btn" onclick="removeHorse(${h.id})">✕</button>
+    </div>`).join('');
+}
+
+function updateHorse(id, field, val){
+  const h = horses.find(h => h.id === id);
+  if(h) h[field] = val;
+}
+
+// ═══════════════════════════════════════════════
+// PHASE 1: CURRENT CALC
+// ═══════════════════════════════════════════════
+function calcCurrentAndNext(){
+  const nums = getInputNums();
+
+  // Collect horse data
+  horses.forEach(h => {
+    const row = document.querySelector(`[data-horse-id="${h.id}"]`);
+  });
+
+  // Weekly lessons
+  const wkPrivate = nums.wkPrivate, wkGroup = nums.wkGroup, wkSemi = nums.wkSemi, wkEval = nums.wkEval;
+  const totalWeeklyLessons = wkPrivate + wkGroup + wkSemi + wkEval;
+
+  // Revenue per month — membership model overrides per-lesson calc
+  const chargeModel = document.querySelector('input[name=chargeModel]:checked').value;
+  const memRev = getMemRevenue();
+
+  // For per-lesson: use per-type student counts from paygo inputs if available
+  const getPaygoStudents = (id) => parseInt(document.getElementById(`paygo_students_${id}`)?.value)||0;
+  const paygoPrivate = getPaygoStudents('pricePrivate');
+  const paygoGroup   = getPaygoStudents('priceGroup');
+  const paygoSemi    = getPaygoStudents('priceSemi');
+  const paygoEval    = getPaygoStudents('priceEval');
+  const lessonRevWeek = paygoPrivate*nums.pricePrivate + paygoGroup*nums.priceGroup + paygoSemi*nums.priceSemi + paygoEval*nums.priceEval;
+  const monthlyRev = memRev !== null ? memRev : lessonRevWeek * 4.3;
+
+  // Horse hours
+  const durFactor = nums.lessonDur / 60;
+  const groupRiders = nums.groupRiders;
+  const horseHrsPerWeek = (wkPrivate*1 + wkGroup*groupRiders + wkSemi*2 + wkEval*1) * durFactor;
+  const numHorses = horses.length || 1;
+  const hrsPerHorse = horseHrsPerWeek / numHorses;
+
+  // Instructor hours & efficiency
+  const instrHrsPerWeek = totalWeeklyLessons * durFactor;
+  const instrCostPerMonth = instrHrsPerWeek * 4.3 * nums.instrRate;
+  const instrRevPerHour = instrHrsPerWeek > 0 ? (monthlyRev / (instrHrsPerWeek * 4.3)) : 0;
+
+  currentRevenue = monthlyRev;
+
+  // Board/training from horse accommodations (needed for KPIs too)
+  const diagBoardRev    = stallRows.filter(s => s.use === 'boarder' || s.use === 'boarder_lesson').reduce((sum, s) => sum + (s.board || 0), 0);
+  const diagTrainingRev = stallRows.filter(s => ['boarder','boarder_lesson','personal','investment','broodmare','stallion','homebred'].includes(s.use)).reduce((sum, s) => sum + (s.training || 0), 0);
+  const diagHorseOwnerRev = diagBoardRev + diagTrainingRev;
+  const diagTotalRev = monthlyRev + diagHorseOwnerRev;
+
+  // Instructor % of lesson revenue
+  const instrPctOfLesson = monthlyRev > 0 ? (instrCostPerMonth / monthlyRev) * 100 : 0;
+  const instrPctClass = instrPctOfLesson < 35 ? 'hi' : instrPctOfLesson < 50 ? 'mid-c' : 'lo';
+  const instrPctLabel = instrPctOfLesson < 35 ? '🟢 Healthy margin' : instrPctOfLesson < 50 ? '🟡 Watch this' : '🔴 High — review pay structure';
+
+  // KPIs
+  const diagKpiHtml = `
+    <div class="kpis">
+      <div class="kpi mid-c">
+        <div class="kl">Est. Total Monthly Revenue</div>
+        <div class="kv">$${fmt(diagTotalRev)}</div>
+        <div class="ks" style="line-height:1.5">
+          🐴 Lessons $${fmt(monthlyRev)}${chargeModel==='per_lesson'?' ⚠️':''}<br>
+          🏡 Horse owners $${fmt(diagHorseOwnerRev)}
+        </div>
+      </div>
+      <div class="kpi ${hrsPerHorse < 5 ? 'hi' : hrsPerHorse < 10 ? 'mid-c' : 'lo'}">
+        <div class="kl">Hrs / Horse / Week</div><div class="kv">${hrsPerHorse.toFixed(1)}</div>
+        <div class="ks">${hrsPerHorse < 5 ? '🟢 Plenty of capacity' : hrsPerHorse < 10 ? '🟡 Getting full' : '🔴 Near max — need horses'}</div>
+      </div>
+      <div class="kpi ${instrRevPerHour > 120 ? 'hi' : instrRevPerHour > 80 ? 'mid-c' : 'lo'}">
+        <div class="kl">Revenue / Instructor Hour</div><div class="kv">$${instrRevPerHour.toFixed(0)}</div>
+        <div class="ks">${instrRevPerHour > 120 ? '🟢 Strong efficiency' : instrRevPerHour > 80 ? '🟡 Room to improve' : '🔴 Too many privates'}</div>
+      </div>
+      <div class="kpi ${instrPctClass}">
+        <div class="kl">Instructor Cost as % of Lesson Rev</div>
+        <div class="kv">${instrPctOfLesson.toFixed(0)}%</div>
+        <div class="ks">$${fmt(instrCostPerMonth)} ÷ $${fmt(monthlyRev)} · ${instrPctLabel}</div>
+      </div>
+      <div class="kpi info"><div class="kl">Instructor Cost / Month</div><div class="kv">$${fmt(instrCostPerMonth)}</div><div class="ks">${instrHrsPerWeek.toFixed(1)} hrs/wk × 4.3</div></div>
+      <div class="kpi info"><div class="kl">Lessons / Week</div><div class="kv">${totalWeeklyLessons}</div><div class="ks">${numHorses} horses, ${nums.numInstructors} instructors</div></div>
+      <div class="kpi info"><div class="kl">Annual Revenue Est.</div><div class="kv">$${fmt(diagTotalRev * (nums.weeksOpen/4))}</div><div class="ks">${nums.weeksOpen} weeks open</div></div>
+    </div>`;
+
+  document.getElementById('diagKpis').innerHTML = diagKpiHtml;
+
+  // Insights & membership pitch — built below, then rendered after revenue table
+  let insights = '';
+  let membershipPitch = '';
+
+  // ── Revenue Breakdown Table ──────────────────
+  // Pull boarding/training revenue directly from horse accommodations
+  const boardRev    = stallRows.filter(s => s.use === 'boarder' || s.use === 'boarder_lesson').reduce((sum, s) => sum + (s.board || 0), 0);
+  const trainingRev = stallRows.filter(s => ['boarder','boarder_lesson','personal','investment','broodmare','stallion','homebred'].includes(s.use)).reduce((sum, s) => sum + (s.training || 0), 0);
+  const horseOwnerRev = boardRev + trainingRev;
+  const totalAllRev   = monthlyRev + horseOwnerRev;
+
+  const revRowStyle = 'padding:9px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:13px';
+  const revTotalStyle = 'padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;background:var(--cream)';
+
+  const boardRows = boardRev > 0 || trainingRev > 0 ? `
+    <div style="${revRowStyle};padding-left:28px;font-size:12px;color:var(--muted)">
+      <span>Board (boarders & boarder/lesson horses)</span><span>$${fmt(boardRev)}/mo</span>
+    </div>
+    <div style="${revRowStyle};padding-left:28px;font-size:12px;color:var(--muted)">
+      <span>Training & lessons on owner's horses</span><span>$${fmt(trainingRev)}/mo</span>
+    </div>` : `
+    <div style="${revRowStyle};padding-left:28px;font-size:12px;color:var(--muted);font-style:italic">
+      <span>No board or training revenue entered in Horse Accommodations</span><span>$0/mo</span>
+    </div>`;
+
+  const revBreakdown = `
+    <div class="card" style="margin-top:0">
+      <div class="card-h"><span class="ico">💰</span><span class="ttl">Monthly Revenue Breakdown</span></div>
+      <div class="card-b" style="padding:0">
+        <div style="${revRowStyle};background:#FFFDF5;font-weight:600;color:var(--brown)">
+          <span>🐴 Lessons on School Horses</span>
+          <span style="font-size:15px;font-weight:700;color:var(--brown)">$${fmt(monthlyRev)}/mo</span>
+        </div>
+        <div style="${revRowStyle};background:#F0FAF5;font-weight:600;color:#1A5C3A">
+          <span>🏡 Horse Owner Revenue</span>
+          <span style="font-size:15px;font-weight:700;color:#1A5C3A">$${fmt(horseOwnerRev)}/mo</span>
+        </div>
+        ${boardRows}
+        <div style="${revTotalStyle};border-top:2px solid var(--border)">
+          <span>Total Estimated Monthly Revenue</span>
+          <span style="font-size:16px;color:var(--brown)">$${fmt(totalAllRev)}/mo</span>
+        </div>
+        ${horseOwnerRev === 0 ? `<div style="padding:8px 14px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)">💡 Enter board and training amounts in <strong>Horse Accommodations</strong> to see your full revenue picture here.</div>` : ''}
+      </div>
+    </div>`;
+
+  // Build insights first, then render revenue table + insights together at the end
+
+  if(chargeModel === 'per_lesson'){
+    insights += I('ib','⚠️',`<strong>You're charging per lesson — this is the #1 reason riding schools struggle with cash flow.</strong> When it rains, clients cancel. When kids go on vacation, income drops. When someone gets sick — you don't get paid. You're essentially running a restaurant that only charges when someone eats.`);
+  }
+
+  if(hrsPerHorse < 5){
+    const roomFor = Math.floor((10 - hrsPerHorse) * numHorses / durFactor);
+    insights += I('ig','🐴',`Your ${numHorses} lesson horses are only working <strong>${hrsPerHorse.toFixed(1)} hours each per week</strong>. At a safe maximum of 10 hours/week, you could add approximately <strong>${roomFor} more lessons per week</strong> without buying a single additional horse. That's pure upside.`);
+  } else if(hrsPerHorse > 10){
+    insights += I('ib','🐴',`Your horses are working <strong>${hrsPerHorse.toFixed(1)} hours/week each</strong> — this is above the 10hr/week guideline. You may be risking soundness issues and burnout. You'll need more horses before you can grow significantly.`);
+  }
+
+  if(instrRevPerHour < 80){
+    const priv = nums.wkPrivate, grp = nums.wkGroup;
+    insights += I('iw','👩‍🏫',`You're generating only <strong>$${instrRevPerHour.toFixed(0)} in revenue per instructor hour</strong>. The benchmark is $100+. The fix: shift more lessons to groups of 4-5. A single instructor teaching 5 students in a group generates 5× the revenue per hour vs. a private lesson at the same rate.`);
+  }
+
+  if(instrRevPerHour > 0){
+    const potentialGroupOnly = (wkGroup + wkPrivate + wkSemi) * nums.priceGroup * groupRiders * 4;
+    insights += I('ii','📊',`<strong>Lesson horse efficiency KPI:</strong> ${horseHrsPerWeek.toFixed(1)} total horse-hours ÷ ${numHorses} horses = ${hrsPerHorse.toFixed(1)} hrs/horse/week. <strong>Instructor revenue efficiency:</strong> $${fmt(monthlyRev)} ÷ ${instrHrsPerWeek.toFixed(1)} instructor hours = $${instrRevPerHour.toFixed(0)}/hr taught.`);
+  }
+
+  if(chargeModel === 'per_lesson' || chargeModel === 'mixed'){
+    const currentAvgPerStudent = monthlyRev / Math.max(nums.totalStudents, 1);
+    const membershipLow = Math.round(nums.pricePrivate * 0.75 * 8);
+    const membershipHigh = Math.round(nums.pricePrivate * 0.85 * 8);
+    membershipPitch = `
+      <div class="card">
+        <div class="card-h"><span class="ico">💡</span><span class="ttl">There's a Much Better Way to Price Your Program</span></div>
+        <div class="card-b">
+          <p style="font-size:14px;line-height:1.8;margin-bottom:14px">Right now you're averaging <strong>$${currentAvgPerStudent.toFixed(0)}/month per student</strong>. You're also exposed to every cancellation. Here's what the most profitable riding schools do differently:</p>
+          <div class="ins ig"><span class="ico">🔑</span><span><strong>The Membership Model:</strong> Instead of $${nums.pricePrivate} per lesson, charge a monthly membership that includes 1 ride per week <em>plus</em> access to a weekly group unmounted horsemanship class. Clients now come 8 times a month instead of 4 — and your income doesn't drop when it rains.</span></div>
+          <div class="ins ig"><span class="ico">📐</span><span><strong>The pricing math:</strong> Take your current lesson price of $${nums.pricePrivate} and multiply by 0.75–0.85 (so clients feel they're getting 15-25% better value), then multiply by 8 classes. That's a suggested range of <strong>$${membershipLow}–$${membershipHigh}/month</strong>. Clients do the math: $${membershipHigh}÷8 = $${(membershipHigh/8).toFixed(0)}/class. They feel like they're winning.</span></div>
+          <div class="ins ig"><span class="ico">📅</span><span><strong>Charge every 4 weeks, not monthly.</strong> There are 13 four-week cycles in a year vs. 12 months. At $${membershipLow}/cycle that's $${fmt(membershipLow*13)} annually vs. $${fmt(membershipLow*12)} monthly — roughly 8% more revenue from the same clients. For a school at breakeven, that extra 8% can be the entire profit margin.</span></div>
+          <div class="pricing-band">
+            <div><div class="band-label">Suggested Tier 1 Range</div><div class="band-range">$${membershipLow} – $${membershipHigh}</div><div class="band-label">every 4 weeks</div></div>
+            <div style="margin-left:20px;font-size:13px;color:var(--muted)">Based on your current $${nums.pricePrivate} private lesson price × 0.75–0.85 × 8 classes/month</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('diagInsights').innerHTML = revBreakdown + insights;
+  document.getElementById('diagMembership').innerHTML = membershipPitch;
+
+  // Pre-fill membership pricing suggestions
+  const priceLow = Math.round(nums.pricePrivate * 0.75 * 8 / 10) * 10;
+  const priceHigh = Math.round(nums.pricePrivate * 0.85 * 8 / 10) * 10;
+  const suggestedT1 = Math.round((priceLow + priceHigh) / 2 / 10) * 10;
+
+  document.getElementById('t1Price').value = suggestedT1;
+  document.getElementById('t2Price').value = suggestedT1 * 2;
+  document.getElementById('t3Price').value = suggestedT1 * 3;
+  updateAnnualPrices();
+
+  // Tier suggestions
+  document.getElementById('tier1Suggestion').innerHTML = `<div class="pricing-band"><div><div class="band-label">Suggested range</div><div class="band-range">$${priceLow}–$${priceHigh}</div></div><div style="margin-left:16px;font-size:12px;color:var(--muted)">Based on $${nums.pricePrivate} × 0.75–0.85 × 8 sessions</div></div>`;
+  document.getElementById('tier2Suggestion').innerHTML = `<div class="pricing-band"><div><div class="band-label">Suggested range</div><div class="band-range">$${priceLow*2}–$${priceHigh*2}</div></div><div style="margin-left:16px;font-size:12px;color:var(--muted)">Simply 2× Tier 1. Don't discount — your costs don't go down.</div></div>`;
+  document.getElementById('tier3Suggestion').innerHTML = `<div class="pricing-band"><div><div class="band-label">Suggested range</div><div class="band-range">$${priceLow*3}–$${priceHigh*3}</div></div><div style="margin-left:16px;font-size:12px;color:var(--muted)">Half-lease pricing. 2 lessons + 1 practice ride + show eligibility.</div></div>`;
+
+  buildPerks();
+  updateMembershipCalc();
+
+  goTo(1);
+}
+
+function updateAnnualPrices(){
+  const t1 = parseFloat(document.getElementById('t1Price').value)||0;
+  const t2 = parseFloat(document.getElementById('t2Price').value)||0;
+  const t3 = parseFloat(document.getElementById('t3Price').value)||0;
+  // 13 cycles × 0.85 = annual with 15% off
+  const annFn = p => Math.round(p * 13 * 0.85 / 10) * 10;
+  document.getElementById('t1Annual').placeholder = '$'+fmt(annFn(t1));
+  document.getElementById('t2Annual').placeholder = '$'+fmt(annFn(t2));
+  document.getElementById('t3Annual').placeholder = '$'+fmt(annFn(t3));
+}
+
+function updateMembershipCalc(){
+  updateAnnualPrices();
+}
+
+const PERKS_T1 = ['Weekly group unmounted horsemanship class','Annual lesson calendar published in advance','Priority scheduling','Member-only newsletter'];
+const PERKS_T2 = ['Show eligibility on lesson horses (additional cost)','2 guest passes per year','Early camp/clinic registration','Monthly progress report'];
+const PERKS_T3 = ['Designated lesson horse (when available)','Practice ride (unmounted or light hack)','Half-lease show eligibility','3 guest passes per year','Quarterly private coaching session'];
+
+function buildPerks(){
+  const build = (containerId, perks, name) => {
+    document.getElementById(containerId).innerHTML = perks.map((p,i) => `
+      <div class="perk-opt">
+        <input type="checkbox" id="${name}_${i}" value="${p}" checked>
+        <label for="${name}_${i}">${p}</label>
+      </div>`).join('');
+  };
+  build('t1Perks', PERKS_T1, 't1p');
+  build('t2Perks', PERKS_T2, 't2p');
+  build('t3Perks', PERKS_T3, 't3p');
+}
+
+function getSelectedPerks(name, perks){
+  return perks.filter((_,i) => document.getElementById(`${name}_${i}`)?.checked);
+}
+
+// ═══════════════════════════════════════════════
+// PHASE 3: AGREEMENTS
+// ═══════════════════════════════════════════════
+function signDisclaimer(){
+  const name = document.getElementById('disclaimerName').value.trim();
+  const date = document.getElementById('disclaimerDate').value;
+  if(!name || !date){
+    document.getElementById('disclaimerStatus').innerHTML = I('iw','⚠️','Please enter your name and date to continue.');
+    return;
+  }
+  agreementsSigned = true;
+  document.getElementById('disclaimerStatus').innerHTML = I('ig','✅',`Acknowledged by <strong>${name}</strong> on ${date}. Generating your agreements…`);
+  document.getElementById('agreementSection').style.display = 'block';
+  generateAgreements(name);
+}
+
+async function generateAgreements(signerName){
+  const nums = getInputNums();
+  const t1 = parseFloat(document.getElementById('t1Price').value)||300;
+  const t2 = parseFloat(document.getElementById('t2Price').value)||600;
+  const t3 = parseFloat(document.getElementById('t3Price').value)||900;
+  const t1Ann = parseFloat(document.getElementById('t1Annual').value) || Math.round(t1*13*0.85/10)*10;
+  const t2Ann = parseFloat(document.getElementById('t2Annual').value) || Math.round(t2*13*0.85/10)*10;
+  const t3Ann = parseFloat(document.getElementById('t3Annual').value) || Math.round(t3*13*0.85/10)*10;
+  const makeup = document.querySelector('input[name=makeupPolicy]:checked').value;
+  const closure = document.getElementById('closureWeeks').value;
+  const cancel = document.getElementById('cancelNotice').value;
+  const t2commit = document.getElementById('t2Commit').value;
+  const t3commit = document.getElementById('t3Commit').value;
+  const state = nums.schoolState || 'your state';
+  const school = nums.schoolName || 'the Riding School';
+
+  const t1Perks = getSelectedPerks('t1p', PERKS_T1);
+  const t2Perks = getSelectedPerks('t2p', PERKS_T2);
+  const t3Perks = getSelectedPerks('t3p', PERKS_T3);
+
+  const makeupText = {
+    none: 'No makeup lessons are offered under any circumstances.',
+    '1per_cycle': 'One (1) makeup lesson per billing cycle if cancelled at least 48 hours in advance. Makeup must be used in the following billing cycle or it expires.',
+    '5tokens': 'Students receive five (5) makeup tokens per calendar year. Each token is issued only when a lesson is cancelled at least 48 hours in advance. Tokens expire 60 days after the missed lesson.'
+  }[makeup];
+
+  document.getElementById('agreementLoading').innerHTML = `<div class="ai-loading"><div class="spinner"></div><span>AI is generating all three agreements with ${state}-specific liability language…</span></div>`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        messages:[{role:'user', content:`You are drafting three professional equine facility membership agreements for "${school}" located in ${state}. Write complete, polished, professional agreements ready for attorney review.
+
+PRICING:
+- Tier 1 (1×/week): $${t1} every 4 weeks | $${t1Ann}/year
+- Tier 2 (2×/week): $${t2} every 4 weeks | $${t2Ann}/year (${t2commit}-month minimum)
+- Tier 3 (3×/week / Half Lease): $${t3} every 4 weeks | $${t3Ann}/year (${t3commit}-month minimum)
+
+POLICIES:
+- Makeup policy: ${makeupText}
+- Closure weeks: ${closure} per year (45 lesson weeks)
+- Cancellation notice: ${cancel} days written notice
+- Tier 1 perks: ${t1Perks.join(', ')}
+- Tier 2 perks: ${t2Perks.join(', ')}
+- Tier 3 perks: ${t3Perks.join(', ')}
+
+Write THREE separate agreements. Each should include:
+1. Program Structure & Tuition section
+2. Lesson format flexibility clause (30min private / 45min semi-private / group 3+ are interchangeable at instructor discretion — tuition stays same)
+3. Payment terms (every-4-weeks billing, auto-pay, annual option)
+4. Makeup/cancellation/weather policies (use the policies above)
+5. A ${state}-specific equine activity liability waiver that references ${state} equine activity statutes if they exist, with inherent risk language, assumption of risk, and release of liability
+6. Signature block for parent/guardian (if minor) and participant
+
+Format each agreement clearly with section headers. Start each with "═══ TIER [X] AGREEMENT ═══" on its own line.
+
+Be thorough, professional, and use standard legal agreement language appropriate for ${state}.`}]
+      })
+    });
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    const text = data.content.map(c=>c.text||'').join('');
+
+    // Split into 3 tiers
+    const parts = text.split(/═══ TIER \d AGREEMENT ═══/i).filter(p => p.trim().length > 100);
+
+    document.getElementById('agreementLoading').innerHTML = '';
+    document.getElementById('toScheduleBtn').style.display = 'inline-flex';
+    agreementsGenerated = true;
+
+    if(parts.length >= 3){
+      let tabsHtml = '<div class="agreement-tabs">';
+      ['Tier 1 — Once/Week','Tier 2 — Twice/Week','Tier 3 — Half Lease'].forEach((t,i) =>
+        tabsHtml += `<div class="atab${i===0?' active':''}" id="atab${i}" onclick="showAgreementTab(${i})">${t}</div>`);
+      tabsHtml += '</div>';
+
+      let contentHtml = parts.map((p,i) =>
+        `<div class="agreement-box" id="agr${i}" style="${i>0?'display:none':''}">${formatAgreement(p)}</div>`
+      ).join('');
+
+      let dlBtns = ['Tier 1','Tier 2','Tier 3'].map((t,i) =>
+        `<button class="btn btn-s" style="font-size:10px;padding:6px 14px" onclick="copyAgreement(${i})">📋 Copy ${t}</button>`
+      ).join('');
+
+      document.getElementById('agreementContent').innerHTML = tabsHtml + contentHtml + `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">${dlBtns}</div>`;
+    } else {
+      document.getElementById('agreementContent').innerHTML = `<div class="agreement-box">${formatAgreement(text)}</div>`;
+    }
+  } catch(err) {
+    document.getElementById('agreementLoading').innerHTML = I('ib','❌',`Error generating agreements: ${err.message}. Please try again.`);
+  }
+}
+
+function showAgreementTab(i){
+  document.querySelectorAll('.agreement-box').forEach((b,j) => b.style.display = j===i?'block':'none');
+  document.querySelectorAll('.atab').forEach((t,j) => t.classList.toggle('active', j===i));
+}
+
+function copyAgreement(i){
+  const el = document.getElementById(`agr${i}`);
+  if(!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => alert('Agreement copied to clipboard!'));
+}
+
+function formatAgreement(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^(#{1,3} .+)$/gm, s => `<h3>${s.replace(/^#+\s*/,'')}</h3>`)
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/^•\s?/gm,'• ')
+    .replace(/^\n/,'<p>')
+    + '</p>';
+}
+
+// ═══════════════════════════════════════════════
+// PHASE 4: GOAL SCHEDULE
+// ═══════════════════════════════════════════════
+
+let goalLessons  = [];
+let goalNextId   = 1;
+let goalOpenDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+const GOAL_TYPES = {
+  private: {label:'Private',     bg:'#FFF8DC', border:'#DDB840', color:'#7A5C00'},
+  group:   {label:'Group',       bg:'#EAF5E3', border:'#88BB60', color:'#2A5C1A'},
+  semi:    {label:'Semi-Private',bg:'#F0E4FA', border:'#C090E8', color:'#5A1A8A'},
+  eval:    {label:'Eval',        bg:'#E0F3FF', border:'#80B8E8', color:'#1A4A6A'},
+  intro:   {label:'Intro/Lunge', bg:'#FFE8D0', border:'#E08840', color:'#7A3A00'},
+};
+const GOAL_ALL_DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const GOAL_HOURS_START = 7;
+const GOAL_HOURS_END   = 20;
+
+function initGoalDayToggles(){
+  const wrap = document.getElementById('goalDayToggles');
+  if(!wrap) return;
+  wrap.innerHTML = GOAL_ALL_DAYS.map(d => {
+    const open = goalOpenDays.includes(d);
+    return `<button id="dayToggle_${d}" onclick="goalToggleDay('${d}')" style="padding:7px 16px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid;background:${open?'var(--brown)':'#E8E4DC'};color:${open?'#fff':'var(--muted)'};border-color:${open?'var(--brown)':'#CCC'}">${d}</button>`;
+  }).join('');
+  // Peak hours selects — update summary on change
+  ['peakWdayStart','peakWdayEnd','peakWkendStart','peakWkendEnd'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.onchange = () => { updatePeakSummary(); if(goalLessons.length) renderGoalCalendar(); };
+  });
+  updatePeakSummary();
+}
+
+function goalToggleDay(d){
+  if(goalOpenDays.includes(d)){
+    if(goalOpenDays.length <= 1) return;
+    goalOpenDays = goalOpenDays.filter(x=>x!==d);
+  } else {
+    goalOpenDays = GOAL_ALL_DAYS.filter(x=>goalOpenDays.includes(x)||x===d);
+  }
+  initGoalDayToggles();
+  if(goalLessons.length) renderGoalCalendar();
+}
+
+function getGoalParams(){
+  const mode          = document.getElementById('scheduleMode')?.value || 'peak';
+  const numArenas     = parseInt(document.getElementById('numArenas')?.value)||2;
+  const instrRate     = parseFloat(document.getElementById('goalInstrRate')?.value)||35;
+  const lessonDur     = parseInt(document.getElementById('goalLessonDur')?.value)||60;
+  const peakWdayStart = parseInt(document.getElementById('peakWdayStart')?.value)||16;
+  const peakWdayEnd   = parseInt(document.getElementById('peakWdayEnd')?.value)||20;
+  const peakWkendStart= parseInt(document.getElementById('peakWkendStart')?.value)||8;
+  const peakWkendEnd  = parseInt(document.getElementById('peakWkendEnd')?.value)||20;
+  return { mode, numArenas, instrRate, lessonDur,
+    activeDays: [...goalOpenDays], hStart: GOAL_HOURS_START, hEnd: GOAL_HOURS_END,
+    peakWdayStart, peakWdayEnd, peakWkendStart, peakWkendEnd };
+}
+
+function goalToggleScheduleMode(){
+  const mode = document.getElementById('scheduleMode')?.value;
+  const ed   = document.getElementById('peakHoursEditor');
+  if(ed) ed.style.display = mode==='peak' ? '' : 'none';
+  updatePeakSummary();
+  if(goalLessons.length) renderGoalCalendar();
+}
+
+function updatePeakSummary(){
+  const el = document.getElementById('peakHoursSummary');
+  if(!el) return;
+  const p = getGoalParams();
+  const fmt12s = h => { const ap=h>=12?'pm':'am'; const hh=h>12?h-12:(h===0?12:h); return hh+ap; };
+  el.textContent = `Mon–Fri: ${fmt12s(p.peakWdayStart)} – ${fmt12s(p.peakWdayEnd)}   ·   Sat–Sun: ${fmt12s(p.peakWkendStart)} – ${fmt12s(p.peakWkendEnd)}`;
+}
+
+function isPeakSlot(day, hour, mode, p){
+  if(mode !== 'peak') return true;
+  const params = p || getGoalParams();
+  const isWeekend = day==='Sat'||day==='Sun';
+  if(isWeekend) return hour >= params.peakWkendStart && hour < params.peakWkendEnd;
+  return hour >= params.peakWdayStart && hour < params.peakWdayEnd;
+}
+
+async function buildGoalSchedule(){
+  const p            = getGoalParams();
+  const maxSimult    = parseInt(document.getElementById('maxSimult').value)||8;
+  const newPerMonth  = parseInt(document.getElementById('newPerMonth').value)||6;
+  const groupSize    = parseInt(document.getElementById('goalGroupSize').value)||5;
+  const horseMaxWeek = parseInt(document.getElementById('horseMaxWeek').value)||10;
+  const horseMaxDay  = parseInt(document.getElementById('horseMaxDay').value)||2;
+  const horseDaysOff = parseInt(document.getElementById('horseDaysOff').value)||1;
+  const nums         = getInputNums();
+  const t1 = parseFloat(document.getElementById('t1Price').value)||300;
+  const t2 = parseFloat(document.getElementById('t2Price').value)||600;
+  const t3 = parseFloat(document.getElementById('t3Price').value)||900;
+
+  const durH = (p.lessonDur||60)/60;
+  const workDaysPerWeek = Math.max(1, p.activeDays.length - horseDaysOff);
+  const horseMaxLessonsDay  = Math.max(1, Math.floor(horseMaxDay / durH));
+  const horseMaxLessonsWeek = Math.max(1, Math.floor(horseMaxWeek / durH));
+
+  // Build peak description from user inputs
+  const peakWdayStart  = parseInt(document.getElementById('peakWdayStart')?.value)||16;
+  const peakWdayEnd    = parseInt(document.getElementById('peakWdayEnd')?.value)||20;
+  const peakWkendStart = parseInt(document.getElementById('peakWkendStart')?.value)||8;
+  const peakWkendEnd   = parseInt(document.getElementById('peakWkendEnd')?.value)||20;
+  const fmt12s = h => { const ap=h>=12?'pm':'am'; const hh=h>12?h-12:(h===0?12:h); return hh+ap; };
+  const peakDesc = p.mode==='peak'
+    ? `Mon-Fri ${fmt12s(peakWdayStart)}-${fmt12s(peakWdayEnd)}, Sat-Sun ${fmt12s(peakWkendStart)}-${fmt12s(peakWkendEnd)}`
+    : '7am-8pm all open days';
+  const activeHoursDesc = p.mode==='peak'
+    ? `weekdays hours ${peakWdayStart}-${peakWdayEnd-1}, weekends hours ${peakWkendStart}-${peakWkendEnd-1}`
+    : 'hours 7-19';
+
+  document.getElementById('scheduleLoading').style.display = 'block';
+  document.getElementById('scheduleLoading').innerHTML = `<div class="ai-loading"><div class="spinner"></div><span>Building Goal Schedule — ${p.numArenas} arena(s), ${p.activeDays.join('/')}, horse welfare limits applied…</span></div>`;
+  document.getElementById('scheduleOutput').innerHTML = '';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:6000,
+        messages:[{role:'user', content:`You are a riding school consultant building a MAXIMIZED goal schedule constrained by horse welfare limits.
+
+HARD CONSTRAINTS:
+- Open days: ${p.activeDays.join(', ')}
+- Scheduling window: ${peakDesc}
+- Active hours: ${activeHoursDesc}
+- Arenas: ${p.numArenas} (named "Arena 1" through "Arena ${p.numArenas}")
+- Max simultaneous riders across ALL arenas at once: ${maxSimult}
+- Lesson duration: ${p.lessonDur} min (${durH.toFixed(1)} hrs)
+- Target group size: ${groupSize} riders
+- New students/month needing eval+intro: ${newPerMonth}
+
+HORSE WELFARE (hard limits):
+- Max hrs/horse/WEEK: ${horseMaxWeek} → max ${horseMaxLessonsWeek} lessons/week per horse
+- Max hrs/horse/DAY: ${horseMaxDay} → max ${horseMaxLessonsDay} lessons/day per horse
+- Days off/week per horse: ${horseDaysOff} → horse works max ${workDaysPerWeek} days/week
+- Calculate minimum horses needed and include the math
+
+GOAL: Maximize group lessons (${groupSize} riders each = most revenue/instructor hour). Fill every active slot. Multiple arenas = simultaneous lessons at same hour, one entry per arena.
+
+RESPOND IN EXACTLY THIS FORMAT:
+
+SCHEDULE_SUMMARY: [2 sentences]
+
+WEEKLY_STATS:
+- Total lessons/week: [n]
+- Group lessons/week: [n]
+- Private lessons/week: [n]
+- Intro/eval slots/week: [n]
+- Instructors needed: [n]
+- Total instructor hours/week: [n]
+- Horses needed: [n]
+- Total horse hours/week: [n]
+- Avg horse hours/week: [n]
+- Estimated revenue every 4 weeks: $[n]
+
+HORSE_MATH:
+[3-4 sentences with specific numbers: peak concurrent riders needed, daily limit constraint, weekly limit constraint, days-off constraint, final horse count]
+
+RECOMMENDATIONS:
+1. [action]
+2. [action]
+3. [action]
+
+CALENDAR_DATA:
+[ONLY a raw JSON array — no markdown fences, no explanation, just the array.
+Each object: {"day":"Mon","hour":16,"duration":${p.lessonDur},"type":"group","riders":${groupSize},"arena":"Arena 1"}
+- day: from ${p.activeDays.join(', ')} only
+- hour: integer — ${activeHoursDesc}
+- type: "group" (use 70%+), "private", "semi", "eval", "intro"
+- riders: group=${groupSize}, semi=2, private/eval/intro=1
+- arena: "Arena 1" through "Arena ${p.numArenas}"
+For ${p.numArenas} arenas: output one lesson per arena per active hour (different arenas may run simultaneously). Fill all active slots.]`}]})
+    });
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    const text = data.content.map(c=>c.text||'').join('');
+
+    const calMatch = text.match(/CALENDAR_DATA:\s*([\s\S]*)$/i);
+    let parsed = [];
+    if(calMatch){
+      try { parsed = JSON.parse(calMatch[1].trim().replace(/```[\w]*\n?|```/g,'')); }
+      catch(e){ console.warn('Goal calendar parse error', e); }
+    }
+    goalLessons = parsed.map(l=>({...l, id:goalNextId++}));
+
+    document.getElementById('scheduleLoading').style.display = 'none';
+    document.getElementById('toCompareBtn').style.display = 'inline-flex';
+    scheduleBuilt = true;
+
+    renderScheduleOutput(text, p, {horseMaxWeek, horseMaxDay, horseDaysOff});
+    buildComparison(text, {instrRate:p.instrRate, targetStudents: maxSimult*3, t1, t2, t3, nums});
+
+  } catch(err){
+    document.getElementById('scheduleLoading').style.display = 'none';
+    document.getElementById('scheduleLoading').innerHTML = I('ib','❌',`Error: ${err.message}`);
+  }
+}
+
+
+
+function renderScheduleOutput(text, params, horseParams){
+  const extract = k => {
+    const m = text.match(new RegExp(`${k}:([\\s\\S]*?)(?=\\n[A-Z_]+:|$)`,'i'));
+    return m ? m[1].trim() : '';
+  };
+  const summary   = extract('SCHEDULE_SUMMARY');
+  const stats     = extract('WEEKLY_STATS');
+  const horseMath = extract('HORSE_MATH');
+  const recs      = extract('RECOMMENDATIONS');
+
+  const hw = (horseParams||{}).horseMaxWeek||20;
+  const hd = (horseParams||{}).horseMaxDay||4;
+
+  let html = '';
+  if(summary)   html += `<div class="ins ig" style="margin-bottom:12px"><span class="ico">📋</span><span>${summary}</span></div>`;
+  if(stats)     html += `<div class="card"><div class="card-h"><span class="ico">📊</span><span class="ttl">Schedule Statistics</span></div><div class="card-b"><pre style="font-size:13px;line-height:1.9;white-space:pre-wrap;font-family:'DM Sans',sans-serif">${stats}</pre></div></div>`;
+  if(horseMath) html += `<div class="card"><div class="card-h"><span class="ico">🐴</span><span class="ttl">Horse Requirements</span><span style="font-size:11px;color:var(--muted);margin-left:8px">max ${hw} hrs/week · ${hd} hrs/day per horse</span></div><div class="card-b"><div style="font-size:13px;line-height:1.8">${horseMath}</div></div></div>`;
+  if(recs)      html += `<div class="card"><div class="card-h"><span class="ico">🎯</span><span class="ttl">Action Plan</span></div><div class="card-b"><div style="font-size:13px;line-height:1.8;white-space:pre-wrap">${recs}</div></div></div>`;
+
+  html += `
+    <div class="card" style="margin-top:16px">
+      <div class="card-h" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span><span class="ico">\u{1F5D3}\uFE0F</span><span class="ttl">Goal Schedule Calendar</span></span>
+        <button class="add-btn" onclick="goalAddLesson()" style="font-size:11px;margin:0">+ Add Lesson</button>
+      </div>
+      <div class="card-b" style="padding:10px 0 4px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;align-items:center">
+          ${Object.entries(GOAL_TYPES).map(([k,t])=>`<span style="background:${t.bg};border:1px solid ${t.border};color:${t.color};border-radius:3px;padding:2px 8px;font-size:11px">${t.label}</span>`).join('')}
+          <span style="font-size:10px;color:var(--muted);margin-left:6px">Click lesson to edit · Click empty cell to add</span>
+        </div>
+        <div id="goalCalendarWrap" style="overflow-x:auto;padding:0 14px 14px"></div>
+      </div>
+    </div>
+    <div class="card" id="goalResourceCard" style="margin-top:16px">
+      <div class="card-h"><span class="ico">\u{1F434}</span><span class="ttl">Resources Needed for This Schedule</span><span style="font-size:11px;color:var(--muted);margin-left:8px">updates as you edit</span></div>
+      <div class="card-b" id="goalResourceBody"></div>
+    </div>`;
+
+  document.getElementById('scheduleOutput').innerHTML = html;
+  renderGoalCalendar(params);
+  renderGoalResources();
+}
+
+function renderGoalCalendar(params){
+  const wrap = document.getElementById('goalCalendarWrap');
+  if(!wrap) return;
+  const p          = params || getGoalParams();
+  const mode       = p.mode || 'peak';
+  const activeDays = p.activeDays || goalOpenDays;
+  const numArenas  = p.numArenas || parseInt(document.getElementById('numArenas')?.value)||2;
+  const arenas     = Array.from({length:numArenas}, (_,i)=>`Arena ${i+1}`);
+
+  const fmt12 = h => { const ap=h>=12?'pm':'am'; const hh=h>12?h-12:(h===0?12:h); return `${hh}${ap}`; };
+
+  // Shown hours = union of active-peak slots + any existing lessons
+  const shownHours = [];
+  for(let h=GOAL_HOURS_START; h<GOAL_HOURS_END; h++){
+    if(activeDays.some(d=>isPeakSlot(d,h,mode,p)) || goalLessons.some(l=>l.hour===h&&activeDays.includes(l.day)))
+      shownHours.push(h);
+  }
+
+  // Helper: lessons in a specific arena/day/hour
+  const getSlot = (arena, day, h) => goalLessons.filter(l=>l.arena===arena&&l.day===day&&l.hour===h);
+  // Helper: all lessons on a given day for a given arena
+  const dayLessons = (arena, day) => goalLessons.filter(l=>l.arena===arena&&l.day===day);
+
+  // ── Build one table per arena ──────────────────────────────────────────
+  let html = '';
+  arenas.forEach(arena => {
+    html += `<div style="margin-bottom:24px">
+      <div style="font-size:12px;font-weight:700;color:var(--brown);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;padding:0 2px">🏟️ ${arena}</div>
+      <table style="border-collapse:collapse;width:100%">
+        <thead><tr>
+          <th style="width:52px;padding:4px 6px;background:var(--cream);border:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);position:sticky;left:0;z-index:2">Time</th>
+          ${activeDays.map(d=>`<th style="min-width:115px;padding:5px 8px;background:var(--cream);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--brown);text-align:center">${d}</th>`).join('')}
+        </tr></thead>
+        <tbody>`;
+
+    shownHours.forEach(h => {
+      html += `<tr><td style="padding:3px 6px;border:1px solid var(--border);background:var(--cream);font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap;vertical-align:middle;position:sticky;left:0">${fmt12(h)}</td>`;
+      activeDays.forEach(day => {
+        const active = isPeakSlot(day, h, mode, p);
+        const slot   = getSlot(arena, day, h);
+        const bg     = active ? '#FAFAF7' : '#F0EDE8';
+        if(slot.length===0){
+          html += `<td onclick="${active?`goalAddLessonAt('${day}',${h},'${arena}')`:''}"
+            style="border:1px solid var(--border);padding:3px;min-width:115px;height:48px;vertical-align:middle;cursor:${active?'pointer':'default'};background:${bg}">
+            ${active?'<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#CCC;font-size:15px">+</div>':''}
+          </td>`;
+        } else {
+          const blocks = slot.map(l=>{
+            const ty=GOAL_TYPES[l.type]||GOAL_TYPES.group;
+            return `<div onclick="goalEditLesson(${l.id})" style="cursor:pointer;background:${ty.bg};border:1.5px solid ${ty.border};border-radius:3px;padding:3px 6px;margin-bottom:2px">
+              <div style="font-size:10px;font-weight:700;color:${ty.color}">${ty.label}</div>
+              <div style="font-size:9px;color:var(--muted)">${l.riders||1} rider${(l.riders||1)>1?'s':''}</div>
+            </div>`;
+          }).join('');
+          html += `<td style="border:1px solid var(--border);padding:3px;min-width:115px;vertical-align:top;background:${bg}">
+            ${blocks}
+            <div onclick="goalAddLessonAt('${day}',${h},'${arena}')" style="text-align:center;font-size:9px;color:#BBB;cursor:pointer;padding:1px">+ add</div>
+          </td>`;
+        }
+      });
+      html += '</tr>';
+    });
+
+    // ── Daily totals footer row ─────────────────────────────────────────
+    html += `<tr style="background:#F5F2EB">
+      <td style="padding:5px 6px;border:1px solid var(--border);font-size:10px;font-weight:700;color:var(--brown);white-space:nowrap;position:sticky;left:0;background:#F5F2EB">Totals</td>`;
+    activeDays.forEach(day => {
+      const dl = dayLessons(arena, day);
+      const lessonCount = dl.length;
+      const studentCount = dl.reduce((s,l)=>s+(l.riders||1),0);
+      // Concurrent instructor slots this day
+      const concurrentSlots = {};
+      dl.forEach(l=>{ concurrentSlots[l.hour]=(concurrentSlots[l.hour]||0)+1; });
+      const instrSlots = Object.values(concurrentSlots).reduce((s,v)=>s+v,0);
+      const instrHrs = instrSlots * ((parseInt(document.getElementById('goalLessonDur')?.value)||60)/60);
+      if(lessonCount===0){
+        html += `<td style="border:1px solid var(--border);padding:5px 6px;text-align:center;font-size:10px;color:var(--muted)">—</td>`;
+      } else {
+        html += `<td style="border:1px solid var(--border);padding:5px 6px;text-align:center">
+          <div style="font-size:11px;font-weight:700;color:var(--brown)">${lessonCount} lesson${lessonCount>1?'s':''}</div>
+          <div style="font-size:10px;color:var(--muted)">${studentCount} students</div>
+          <div style="font-size:10px;color:#5A4A30">${instrHrs.toFixed(1)} instr hrs</div>
+        </td>`;
+      }
+    });
+    html += '</tr></tbody></table></div>';
+  });
+
+  // ── Cross-arena daily totals (horses+instructors per day) ──────────────
+  html += `<div style="margin-top:4px;margin-bottom:8px">
+    <div style="font-size:12px;font-weight:700;color:var(--brown);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">📊 Daily Totals — All Arenas Combined</div>
+    <table style="border-collapse:collapse;width:100%">
+      <thead><tr>
+        <th style="width:130px;padding:5px 8px;background:var(--cream);border:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted)"></th>
+        ${activeDays.map(d=>`<th style="padding:5px 8px;background:var(--cream);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--brown);text-align:center">${d}</th>`).join('')}
+      </tr></thead>
+      <tbody>`;
+
+  const durH = (parseInt(document.getElementById('goalLessonDur')?.value)||60)/60;
+  const horseMaxDay  = parseInt(document.getElementById('horseMaxDay')?.value)||2;
+  const maxLessonsPerHorseDay = Math.max(1, Math.floor(horseMaxDay/durH));
+
+  // Row: lessons/day
+  html += `<tr><td style="padding:4px 8px;border:1px solid var(--border);background:var(--cream);font-size:10px;font-weight:600;color:var(--muted)">Total Lessons</td>`;
+  activeDays.forEach(day=>{
+    const n = goalLessons.filter(l=>l.day===day).length;
+    html += `<td style="border:1px solid var(--border);padding:4px 8px;text-align:center;font-size:11px;font-weight:700;color:var(--brown)">${n||'—'}</td>`;
+  });
+  html += '</tr>';
+
+  // Row: students/day
+  html += `<tr><td style="padding:4px 8px;border:1px solid var(--border);background:var(--cream);font-size:10px;font-weight:600;color:var(--muted)">Students Taught</td>`;
+  activeDays.forEach(day=>{
+    const s = goalLessons.filter(l=>l.day===day).reduce((sum,l)=>sum+(l.riders||1),0);
+    html += `<td style="border:1px solid var(--border);padding:4px 8px;text-align:center;font-size:11px;font-weight:700;color:var(--brown)">${s||'—'}</td>`;
+  });
+  html += '</tr>';
+
+  // Row: instructors needed (max concurrent lessons that day)
+  html += `<tr><td style="padding:4px 8px;border:1px solid var(--border);background:var(--cream);font-size:10px;font-weight:600;color:var(--muted)">Instructors Needed</td>`;
+  activeDays.forEach(day=>{
+    const slots = {};
+    goalLessons.filter(l=>l.day===day).forEach(l=>{ slots[l.hour]=(slots[l.hour]||0)+1; });
+    const maxCon = Math.max(0, ...Object.values(slots));
+    html += `<td style="border:1px solid var(--border);padding:4px 8px;text-align:center;font-size:11px;font-weight:700;color:var(--brown)">${maxCon||'—'}</td>`;
+  });
+  html += '</tr>';
+
+  // Row: instructor hours/day
+  html += `<tr><td style="padding:4px 8px;border:1px solid var(--border);background:var(--cream);font-size:10px;font-weight:600;color:var(--muted)">Instructor Hours</td>`;
+  activeDays.forEach(day=>{
+    const n = goalLessons.filter(l=>l.day===day).length;
+    const h = (n * durH).toFixed(1);
+    html += `<td style="border:1px solid var(--border);padding:4px 8px;text-align:center;font-size:11px;color:var(--muted)">${n?h+'h':'—'}</td>`;
+  });
+  html += '</tr>';
+
+  // Row: horses needed that day
+  html += `<tr><td style="padding:4px 8px;border:1px solid var(--border);background:var(--cream);font-size:10px;font-weight:600;color:var(--muted)">🐴 Horses Needed</td>`;
+  activeDays.forEach(day=>{
+    // Peak concurrent riders = horses needed at peak
+    const riderSlots = {};
+    goalLessons.filter(l=>l.day===day&&l.type!=='eval').forEach(l=>{
+      riderSlots[l.hour]=(riderSlots[l.hour]||0)+(l.riders||1);
+    });
+    const peakRiders = Math.max(0, ...Object.values(riderSlots));
+    // Daily work limit
+    const totalRiderSlots = goalLessons.filter(l=>l.day===day&&l.type!=='eval').reduce((s,l)=>s+(l.riders||1),0);
+    const byDailyLimit = Math.ceil(totalRiderSlots / maxLessonsPerHorseDay);
+    const needed = Math.max(peakRiders, byDailyLimit);
+    html += `<td style="border:1px solid var(--border);padding:4px 8px;text-align:center;font-size:11px;font-weight:700;color:#2A5C1A">${needed||'—'}</td>`;
+  });
+  html += '</tr>';
+
+  html += '</tbody></table></div>';
+
+  wrap.innerHTML = html;
+  renderGoalResources();
+}
+
+function renderGoalResources(){
+  const el = document.getElementById('goalResourceBody');
+  if(!el||!goalLessons.length) return;
+  const p            = getGoalParams();
+  const instrRate    = p.instrRate;
+  const durH         = (p.lessonDur||60)/60;
+  const total        = goalLessons.length;
+  const horseMaxWeek = parseInt(document.getElementById('horseMaxWeek')?.value)||10;
+  const horseMaxDay  = parseInt(document.getElementById('horseMaxDay')?.value)||2;
+  const horseDaysOff = parseInt(document.getElementById('horseDaysOff')?.value)||1;
+  const workDaysPerWeek = Math.max(1, goalOpenDays.length - horseDaysOff);
+
+  const byType = {};
+  Object.keys(GOAL_TYPES).forEach(k=>byType[k]=0);
+  goalLessons.forEach(l=>{ byType[l.type]=(byType[l.type]||0)+1; });
+
+  // Instructors = max concurrent lessons at any single timeslot
+  const instrHrsPerWeek = total * durH;
+  const slotCounts = {};
+  goalLessons.forEach(l=>{ const k=`${l.day}_${l.hour}`; slotCounts[k]=(slotCounts[k]||0)+1; });
+  const maxConcurrent = Math.max(...Object.values(slotCounts),1);
+
+  // Horse need — three limits, take the maximum:
+  // 1. Peak concurrent riders (must have enough horses in the ring at once)
+  const riderSlotsPerTime = {};
+  goalLessons.filter(l=>l.type!=='eval').forEach(l=>{
+    const k=`${l.day}_${l.hour}`; riderSlotsPerTime[k]=(riderSlotsPerTime[k]||0)+(l.riders||1);
+  });
+  const peakConcurrentRiders = Math.max(...Object.values(riderSlotsPerTime), 0);
+
+  // 2. Daily limit: horses needed = total riders that day ÷ max lessons/horse/day
+  const horseMaxLessonsDay  = Math.max(1, Math.floor(horseMaxDay / durH));
+  const ridersByDay = {};
+  goalLessons.filter(l=>l.type!=='eval').forEach(l=>{
+    ridersByDay[l.day] = (ridersByDay[l.day]||0) + (l.riders||1);
+  });
+  const maxByDailyLimit = Math.max(...Object.values(ridersByDay).map(r=>Math.ceil(r/horseMaxLessonsDay)), 0);
+
+  // 3. Weekly limit: total rider-lessons ÷ max lessons/horse/week
+  const horseMaxLessonsWeek = Math.max(1, Math.floor(horseMaxWeek / durH));
+  const totalHorseLessons   = goalLessons.filter(l=>l.type!=='eval').reduce((s,l)=>s+(l.riders||1),0);
+  const horsesByWeeklyLimit = Math.ceil(totalHorseLessons / horseMaxLessonsWeek);
+  // Days-off constraint: each horse only works workDaysPerWeek days,
+  // so if peak daily riders > horseMaxLessonsDay, need extra horses for rotation
+  const horsesForDaysOff = horseDaysOff > 0
+    ? Math.ceil(Math.max(...Object.values(riderSlotsPerTime), 0) * (goalOpenDays.length / workDaysPerWeek))
+    : 0;
+
+  // Take the binding constraint
+  const horsesNeeded = Math.max(peakConcurrentRiders, maxByDailyLimit, horsesByWeeklyLimit, horsesForDaysOff);
+  const bindingReason = horsesNeeded === peakConcurrentRiders ? 'peak concurrent riders'
+    : horsesNeeded === maxByDailyLimit ? `daily limit (${horseMaxDay} hrs/day)`
+    : horsesNeeded === horsesForDaysOff ? `days-off rotation (${horseDaysOff} day${horseDaysOff!==1?'s':''} off/week)`
+    : `weekly limit (${horseMaxWeek} hrs/week)`;
+
+  const avgHorseHrsWeek = totalHorseLessons > 0 && horsesNeeded > 0
+    ? ((totalHorseLessons * durH) / horsesNeeded).toFixed(1) : '0';
+
+  const totalRiders      = goalLessons.reduce((s,l)=>s+(l.riders||1),0);
+  const instrCostPer4Wks = instrHrsPerWeek * instrRate * 4;
+
+  // Welfare status color
+  const avgH = parseFloat(avgHorseHrsWeek);
+  const welfareOk = avgH <= horseMaxWeek * 0.85;
+  const welfareColor = welfareOk ? '#2A5C1A' : '#A0380A';
+  const welfareLabel = welfareOk ? '✅ Within limits' : '⚠️ Near limit';
+
+  const ks = 'flex:1;min-width:145px;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:12px 16px;text-align:center';
+  el.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+      <div style="${ks}">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Lessons / Week</div>
+        <div style="font-size:26px;font-weight:700;color:var(--brown)">${total}</div>
+      </div>
+      <div style="${ks}">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Instructors Needed</div>
+        <div style="font-size:26px;font-weight:700;color:var(--brown)">${maxConcurrent}</div>
+        <div style="font-size:10px;color:var(--muted)">${instrHrsPerWeek.toFixed(0)} hrs/wk total</div>
+      </div>
+      <div style="${ks};border-color:#88BB60">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">🐴 Horses Needed</div>
+        <div style="font-size:26px;font-weight:700;color:var(--brown)">${horsesNeeded}</div>
+        <div style="font-size:10px;color:var(--muted)">limited by ${bindingReason}</div>
+      </div>
+      <div style="${ks}">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Avg Horse hrs/Week</div>
+        <div style="font-size:26px;font-weight:700;color:${welfareColor}">${avgHorseHrsWeek}</div>
+        <div style="font-size:10px;color:${welfareColor}">${welfareLabel}</div>
+      </div>
+      <div style="${ks}">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Rider-Slots / Week</div>
+        <div style="font-size:26px;font-weight:700;color:var(--brown)">${totalRiders}</div>
+      </div>
+      <div style="${ks}">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Instructor Cost / 4 Wks</div>
+        <div style="font-size:26px;font-weight:700;color:var(--rust)">$${fmt(instrCostPer4Wks)}</div>
+        <div style="font-size:10px;color:var(--muted)">@ $${instrRate}/hr</div>
+      </div>
+    </div>
+    <div style="background:var(--gold-lt);border:1px solid #DDB840;border-radius:5px;padding:9px 12px;font-size:11px;color:#5A4000;margin-bottom:10px;line-height:1.6">
+      <strong>Horse math:</strong> ${peakConcurrentRiders} for peak concurrent riders · ${maxByDailyLimit} for daily limit (${horseMaxDay} hrs/day) · ${horsesByWeeklyLimit} for weekly limit (${horseMaxWeek} hrs/week) · ${horsesForDaysOff} for days-off rotation (${horseDaysOff} day off/week) → <strong>${horsesNeeded} horses total (binding: ${bindingReason})</strong>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px">
+      ${Object.entries(GOAL_TYPES).map(([k,ty])=>byType[k]?`<span style="background:${ty.bg};border:1px solid ${ty.border};color:${ty.color};border-radius:3px;padding:3px 10px">${ty.label}: <strong>${byType[k]}</strong>/wk</span>`:'').join('')}
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin:10px 0 0">All figures update live as you edit the calendar. Horse count reflects the most restrictive of 3 constraints: peak concurrent riders, daily welfare limit, and weekly welfare limit.</p>`;
+}
+
+let goalEditId = null;
+
+function goalAddLesson(){
+  const p = getGoalParams();
+  goalAddLessonAt(p.activeDays[0], GOAL_HOURS_START);
+}
+function goalAddLessonAt(day, hour, arenaHint){
+  goalEditId = null;
+  const n = parseInt(document.getElementById('numArenas')?.value)||2;
+  const arenas = Array.from({length:n},(_,i)=>`Arena ${i+1}`);
+  const arena = arenaHint || arenas[0];
+  showGoalModal({day,hour,duration:60,type:'group',riders:5,arena}, arenas);
+}
+function goalEditLesson(id){
+  goalEditId = id;
+  const l = goalLessons.find(l=>l.id===id);
+  const n = parseInt(document.getElementById('numArenas')?.value)||2;
+  if(l) showGoalModal(l, Array.from({length:n},(_,i)=>`Arena ${i+1}`));
+}
+function goalDeleteLesson(id){
+  goalLessons = goalLessons.filter(l=>l.id!==id);
+  closeGoalModal();
+  renderGoalCalendar();
+}
+
+function showGoalModal(l, arenas){
+  const p = getGoalParams();
+  const fmt12m = h => { const ap=h>=12?'pm':'am'; const hh=h>12?h-12:(h===0?12:h); return `${hh}:00 ${ap}`; };
+  const dayOpts   = p.activeDays.map(d=>`<option value="${d}"${l.day===d?' selected':''}>${d}</option>`).join('');
+  const typeOpts  = Object.entries(GOAL_TYPES).map(([v,t])=>`<option value="${v}"${l.type===v?' selected':''}>${t.label}</option>`).join('');
+  const durOpts   = [30,45,60,75,90].map(d=>`<option value="${d}"${(l.duration||60)===d?' selected':''}>${d} min</option>`).join('');
+  const hourOpts  = Array.from({length:GOAL_HOURS_END-GOAL_HOURS_START},(_,i)=>GOAL_HOURS_START+i).map(h=>`<option value="${h}"${l.hour===h?' selected':''}>${fmt12m(h)}</option>`).join('');
+  const arenaOpts = (arenas||['Arena 1']).map(a=>`<option value="${a}"${l.arena===a?' selected':''}>${a}</option>`).join('');
+
+  let ov=document.getElementById('goalModalOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='goalModalOverlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.onclick=e=>{if(e.target===ov)closeGoalModal();}; document.body.appendChild(ov);}
+  ov.style.display='flex';
+  ov.innerHTML=`<div style="background:#FAF7F0;border-radius:8px;padding:22px 26px;width:400px;max-width:98vw;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:16px">${goalEditId?'Edit':'Add'} Lesson</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="fg" style="margin:0"><label>Day</label><select id="gm_day" style="width:100%">${dayOpts}</select></div>
+      <div class="fg" style="margin:0"><label>Start Time</label><select id="gm_hour" style="width:100%">${hourOpts}</select></div>
+      <div class="fg" style="margin:0"><label>Duration</label><select id="gm_dur" style="width:100%">${durOpts}</select></div>
+      <div class="fg" style="margin:0"><label>Type</label><select id="gm_type" onchange="goalModalRidersHint(this)" style="width:100%">${typeOpts}</select></div>
+      <div class="fg" style="margin:0"><label>Riders</label><input type="number" id="gm_riders" value="${l.riders||1}" min="1" max="12" style="width:100%"></div>
+      <div class="fg" style="margin:0"><label>Arena</label><select id="gm_arena" style="width:100%">${arenaOpts}</select></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      ${goalEditId?`<button class="btn btn-s" onclick="goalDeleteLesson(${goalEditId})" style="font-size:11px;color:var(--rust);border-color:var(--rust);margin-right:auto">Delete</button>`:''}
+      <button class="btn btn-s" onclick="closeGoalModal()" style="font-size:11px">Cancel</button>
+      <button class="btn btn-p" onclick="saveGoalModal()" style="font-size:11px">Save</button>
+    </div>
+  </div>`;
+}
+function goalModalRidersHint(sel){
+  const r=document.getElementById('gm_riders'); if(!r)return;
+  ({private:1,semi:2,group:5,eval:1,intro:1})[sel.value]&&(r.value=({private:1,semi:2,group:5,eval:1,intro:1})[sel.value]);
+}
+function closeGoalModal(){ const ov=document.getElementById('goalModalOverlay'); if(ov)ov.style.display='none'; }
+function saveGoalModal(){
+  const lesson={day:document.getElementById('gm_day').value,hour:parseInt(document.getElementById('gm_hour').value),
+    duration:parseInt(document.getElementById('gm_dur').value),type:document.getElementById('gm_type').value,
+    riders:parseInt(document.getElementById('gm_riders').value)||1,arena:document.getElementById('gm_arena').value};
+  if(goalEditId){const i=goalLessons.findIndex(l=>l.id===goalEditId);if(i>=0)goalLessons[i]={...goalLessons[i],...lesson};}
+  else goalLessons.push({...lesson,id:goalNextId++});
+  closeGoalModal();
+  renderGoalCalendar();
+}
+
+
+function buildComparison(scheduleText, params){
+  const nums = params.nums;
+  // Current state
+  const wkPrivate=nums.wkPrivate,wkGroup=nums.wkGroup,wkSemi=nums.wkSemi,wkEval=nums.wkEval;
+  const durFactor=nums.lessonDur/60;
+  const curWeeklyRev = wkPrivate*nums.pricePrivate + wkGroup*nums.priceGroup + wkSemi*nums.priceSemi + wkEval*nums.priceEval;
+  const curMonthly = curWeeklyRev * 4;
+  const curInstrHrs = (wkPrivate+wkGroup+wkSemi+wkEval)*durFactor;
+  const curInstrCost = curInstrHrs * 4.3 * nums.instrRate;
+  const curNet = curMonthly - curInstrCost;
+
+  // Goal state — extract from AI text
+  const extractNum = (pattern) => {
+    const m = scheduleText.match(pattern);
+    return m ? parseFloat(m[1].replace(/[,$]/g,'')) : null;
+  };
+  const goalMonthly = extractNum(/monthly revenue.*?\$([0-9,]+)/i) || params.targetStudents * params.t1 * 0.7;
+  const goalInstrCost = extractNum(/instructor cost.*?month.*?\$([0-9,]+)/i) || goalMonthly * 0.25;
+  const goalNet = goalMonthly - goalInstrCost;
+
+  goalRevenue = goalMonthly;
+
+  const rows = [
+    {label:'Active Students', cur: nums.totalStudents, goal: params.targetStudents, isCount:true},
+    {label:'Monthly Lesson Revenue', cur: curMonthly, goal: goalMonthly},
+    {label:'Instructor Cost / Month', cur: curInstrCost, goal: goalInstrCost, isExpense:true},
+    {label:'Net Before Overhead', cur: curNet, goal: goalNet},
+    {label:'Annual Revenue', cur: curMonthly*12, goal: goalMonthly*12},
+  ];
+
+  let html = `
+    <div class="kpis">
+      <div class="kpi hi"><div class="kl">Goal Monthly Revenue</div><div class="kv">$${fmt(goalMonthly)}</div><div class="ks">at ${params.targetStudents} students</div></div>
+      <div class="kpi ${curMonthly > 0 ? 'mid-c' : 'lo'}"><div class="kl">Current Monthly Revenue</div><div class="kv">$${fmt(curMonthly)}</div><div class="ks">today</div></div>
+      <div class="kpi hi"><div class="kl">Revenue Uplift</div><div class="kv">+$${fmt(goalMonthly-curMonthly)}</div><div class="ks">/month</div></div>
+      <div class="kpi info"><div class="kl">Annual Difference</div><div class="kv">+$${fmt((goalMonthly-curMonthly)*12)}</div><div class="ks">/year</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="ico">⚖️</span><span class="ttl">Current vs. Optimized — Side by Side</span></div>
+      <div class="card-b">
+        <table class="cmp">
+          <thead><tr><th>Metric</th><th class="r" style="color:var(--rust)">Current</th><th class="r" style="color:var(--sage)">Optimized Goal</th><th class="r">Difference</th></tr></thead>
+          <tbody>`;
+
+  rows.forEach(r => {
+    const diff = r.goal - r.cur;
+    const good = r.isExpense ? diff < 0 : diff > 0;
+    const cls = diff === 0 ? '' : good ? 'pos' : 'neg';
+    const sign = diff > 0 ? '+' : '';
+    html += `<tr>
+      <td>${r.label}</td>
+      <td class="r">${r.isCount ? r.cur : '$'+fmt(r.cur)}</td>
+      <td class="r">${r.isCount ? r.goal : '$'+fmt(r.goal)}</td>
+      <td class="r ${cls}">${sign}${r.isCount ? Math.round(diff) : '$'+fmt(diff)}</td>
+    </tr>`;
+  });
+
+  html += `</tbody><tr class="tot"><td>Monthly Net Profit (before fixed costs)</td><td class="r">$${fmt(curNet)}</td><td class="r">$${fmt(goalNet)}</td><td class="r ${goalNet>curNet?'pos':'neg'}">${goalNet>curNet?'+':''}$${fmt(goalNet-curNet)}</td></tr></table>
+      </div>
+    </div>`;
+
+  // Key insight
+  html += I('ig','🎯',`<strong>The single biggest lever:</strong> Moving ${nums.totalStudents} existing students to memberships — even at today's lesson volume — converts inconsistent per-lesson income into guaranteed recurring revenue. The schedule optimization then layers on top of that foundation.`);
+
+  if(scheduleText.includes('4') || scheduleText.includes('8pm')){
+    const fourEightMatch = scheduleText.match(/\$([0-9,]+).*?month/i);
+    if(fourEightMatch) html += I('iw','⏰',`<strong>The 4–8pm window insight:</strong> Peak evening hours are often the most underutilized time in a riding school. The schedule above shows what consistent, optimized use of just those 4 hours per weeknight could generate.`);
+  }
+
+  document.getElementById('comparisonOutput').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function getInputNums(){
+  const model = getChargeModel();
+  const memStudents = (model === 'membership' || model === 'mixed') ? getMemStudentCount() : null;
+  return {
+    schoolName: document.getElementById('schoolName').value,
+    schoolState: document.getElementById('schoolState').value,
+    pricePrivate: parseFloat(document.getElementById('pricePrivate').value)||0,
+    priceGroup: parseFloat(document.getElementById('priceGroup').value)||0,
+    priceSemi: parseFloat(document.getElementById('priceSemi').value)||0,
+    priceEval: parseFloat(document.getElementById('priceEval').value)||0,
+    lessonDur: parseInt(document.getElementById('lessonDur').value)||60,
+    totalStudents: memStudents !== null ? memStudents : (parseInt(document.getElementById('totalStudents').value)||0),
+    wkPrivate: parseInt(document.getElementById('wkPrivate').value)||0,
+    wkGroup: parseInt(document.getElementById('wkGroup').value)||0,
+    wkSemi: parseInt(document.getElementById('wkSemi').value)||0,
+    wkEval: parseInt(document.getElementById('wkEval').value)||0,
+    groupRiders: parseInt(document.getElementById('groupRiders').value)||4,
+    numInstructors: parseInt(document.getElementById('numInstructors').value)||1,
+    instrRate: parseFloat(document.getElementById('instrRate').value)||35,
+    weeksOpen: parseInt(document.getElementById('weeksOpen').value)||45,
+    arenas: arenas,
+    totalMaxRiders: arenas.reduce((s,a) => s+(a.maxRiders||0), 0),
+  };
+}
+
+function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function I(cls,ico,msg){ return `<div class="ins ${cls}"><span class="ico">${ico}</span><span>${msg}</span></div>`; }
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+function init(){
+  buildPhaseNav();
+
+  // Wire charge model radio buttons to re-render pricing card
+  document.querySelectorAll('input[name=chargeModel]').forEach(r => {
+    r.addEventListener('change', renderPricingCard);
+  });
+
+  // Initial render
+  renderPricingCard();
+  renderArenas();
+  renderInstructors();
+  renderBarn();
+  renderBarnSetupRows();
+  renderOwners();
+  renderPropertyPayment();
+  renderScheduleCalendar();
+  initGoalDayToggles();
+  // Default horses
+  addHorse('Biscuit','12','15.1','20');
+  addHorse('Dakota','8','15.3','25');
+  addHorse('Rosie','14','14.2','15');
+  addHorse('Thunder','10','16.0','20');
+
+  // Set today's date on disclaimer
+  document.getElementById('disclaimerDate').value = new Date().toISOString().split('T')[0];
+}
+
+// ═══════════════════════════════════════════════
+// DYNAMIC PRICING CARD
+// ═══════════════════════════════════════════════
+let membershipRows = [
+  {id:1, price:300, lessons:1, students:12},
+  {id:2, price:600, lessons:2, students:5},
+];
+let nextMemId = 3;
+
+function getChargeModel(){
+  return document.querySelector('input[name=chargeModel]:checked')?.value || 'per_lesson';
+}
+
+function renderPricingCard(){
+  const model = getChargeModel();
+  const body  = document.getElementById('pricingCardDynamic');
+  const title = document.getElementById('pricingCardTitle');
+
+  if(model === 'per_lesson'){
+    title.textContent = 'Current Lesson on Lesson Horse Pricing (Pay-As-You-Go)';
+    body.innerHTML = buildPerLessonHTML() + `
+      <div class="frow" style="margin-top:14px">
+        <div class="fg w3"><label>Total Active Students</label><input type="number" id="v_totalStudents" value="${getHidden('totalStudents')}" min="0" oninput="syncHidden('totalStudents',this.value);refreshPaygoRevenue()"></div>
+      </div>`;
+    refreshPaygoRevenue();
+
+  } else if(model === 'membership'){
+    title.textContent = 'Current Lesson on Lesson Horse Pricing (Membership)';
+    renderMembershipTable(body);
+
+  } else {
+    title.textContent = 'Current Lesson on Lesson Horse Pricing (Mixed Model)';
+    body.innerHTML = `
+      <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);padding:8px 0 10px;border-bottom:2px solid var(--border);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span style="background:var(--gold-lt);color:var(--gold);padding:3px 10px;border-radius:10px;font-size:10px">Drop-In / Pay-As-You-Go</span>
+        <span style="color:var(--muted);font-weight:400;font-size:11px">for students not on a membership</span>
+      </div>
+      ${buildPerLessonHTML()}
+      <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);padding:16px 0 10px;border-bottom:2px solid var(--border);margin:16px 0 14px;display:flex;align-items:center;gap:8px">
+        <span style="background:var(--sage-lt);color:var(--sage);padding:3px 10px;border-radius:10px;font-size:10px">Membership Tiers</span>
+        <span style="color:var(--muted);font-weight:400;font-size:11px">for recurring subscribers</span>
+      </div>
+      <div id="mixedMemTableContainer"></div>`;
+    renderMembershipTable(document.getElementById('mixedMemTableContainer'));
+    refreshPaygoRevenue();
+  }
+}
+
+function buildPerLessonHTML(){
+  const lessonTypes = [
+    {id:'pricePrivate', label:'🐴 Private',     cls:'lt-private', bg:'var(--gold-lt)',  border:'#DDB840', durSel:'<option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option>', wkDefault:8},
+    {id:'priceGroup',   label:'👥 Group',       cls:'lt-group',   bg:'var(--sage-lt)', border:'#88BB60', durSel:'<option value="45">45 min</option><option value="60" selected>60 min</option>',                                   wkDefault:12, note:'per rider'},
+    {id:'priceSemi',    label:'👫 Semi-Private', cls:'lt-semi',    bg:'#F0E4FA',        border:'#C090E8', durSel:'<option value="30">30 min</option><option value="45" selected>45 min</option><option value="60">60 min</option>', wkDefault:4,  note:'per rider'},
+    {id:'priceEval',    label:'🔍 Eval/Intro',  cls:'lt-eval',    bg:'var(--sky-lt)',  border:'#80B8E8', durSel:'<option value="30">30 min</option><option value="45" selected>45 min</option><option value="60">60 min</option>', wkDefault:3},
+  ];
+
+  let html = `
+  <table style="width:100%;border-collapse:separate;border-spacing:0 6px">
+    <thead>
+      <tr style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">
+        <th style="padding:0 8px 4px 10px;text-align:left;width:150px">Lesson Type</th>
+        <th style="padding:0 8px 4px;text-align:left;width:110px">Price</th>
+        <th style="padding:0 8px 4px;text-align:left;width:110px">Duration</th>
+        <th style="padding:0 8px 4px;text-align:left;width:120px">Students/Week</th>
+        <th style="padding:0 8px 4px;text-align:left">Est. Monthly Rev <span style="color:var(--rust)">*</span></th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  lessonTypes.forEach(t => {
+    html += `
+      <tr style="background:${t.bg}">
+        <td style="padding:8px 8px 8px 10px;border:1px solid ${t.border};border-right:none;border-radius:4px 0 0 4px">
+          <span class="lesson-type-badge ${t.cls}" style="white-space:nowrap">${t.label}</span>
+          ${t.note ? `<div style="font-size:10px;color:var(--muted);margin-top:2px;padding-left:2px">${t.note}</div>` : ''}
+        </td>
+        <td style="padding:8px 6px;border-top:1px solid ${t.border};border-bottom:1px solid ${t.border}">
+          <div style="position:relative">
+            <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none">$</span>
+            <input type="number" id="v_${t.id}" value="${getHidden(t.id)||0}" min="0"
+              style="width:100%;padding:6px 6px 6px 18px;font-size:13px;border:1.5px solid ${t.border};background:rgba(255,255,255,.6);border-radius:3px;color:var(--brown)"
+              oninput="syncHidden('${t.id}',this.value);refreshPaygoRevenue()">
+          </div>
+        </td>
+        <td style="padding:8px 6px;border-top:1px solid ${t.border};border-bottom:1px solid ${t.border}">
+          <select style="width:100%;padding:6px 4px;font-size:12px;border:1.5px solid ${t.border};background:rgba(255,255,255,.6);border-radius:3px;color:var(--brown)"
+            onchange="refreshPaygoRevenue()">${t.durSel}</select>
+        </td>
+        <td style="padding:8px 6px;border-top:1px solid ${t.border};border-bottom:1px solid ${t.border}">
+          <input type="number" id="paygo_students_${t.id}" value="${t.wkDefault}" min="0"
+            style="width:100%;padding:6px;font-size:13px;text-align:center;border:1.5px solid ${t.border};background:rgba(255,255,255,.6);border-radius:3px;color:var(--brown)"
+            oninput="refreshPaygoRevenue()">
+        </td>
+        <td style="padding:8px 10px 8px 8px;border:1px solid ${t.border};border-left:none;border-radius:0 4px 4px 0">
+          <span id="paygo_rev_${t.id}" style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:var(--sage)">—</span>
+          <span style="font-size:10px;color:var(--muted)">/mo</span>
+        </td>
+      </tr>`;
+  });
+
+  html += `
+    </tbody>
+    <tfoot>
+      <tr style="background:var(--tan-lt)">
+        <td style="padding:9px 8px 9px 10px;border:1.5px solid var(--border);border-right:none;border-radius:4px 0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total</td>
+        <td style="padding:9px 6px;border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border)"></td>
+        <td style="padding:9px 6px;border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border)"></td>
+        <td style="padding:9px 6px;border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border)">
+          <span id="paygo_total_students" style="font-weight:700;font-size:13px;color:var(--brown)">—</span>
+        </td>
+        <td style="padding:9px 10px 9px 8px;border:1.5px solid var(--border);border-left:none;border-radius:0 4px 4px 0">
+          <span id="paygo_total_rev" style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--brown)">—</span>
+          <span style="font-size:10px;color:var(--muted)">/mo</span>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <div style="margin-top:10px;padding:10px 12px;background:#FFF8E8;border-left:3px solid var(--rust);border-radius:0 4px 4px 0;font-size:12px;color:#5A2800;line-height:1.6">
+    <strong>* Important caveat:</strong> This estimate assumes every student attends every week. In our experience, almost no one does — vacations, illness, bad weather, competing commitments mean real per-lesson income is typically <strong>40–60% lower</strong> than this figure over the course of a year. This unpredictability is exactly why a membership model is so powerful.
+  </div>`;
+
+  return html;
+}
+
+function refreshPaygoRevenue(){
+  const lessonTypeIds = ['pricePrivate','priceGroup','priceSemi','priceEval'];
+  let totalRev = 0, totalStudents = 0;
+  lessonTypeIds.forEach(id => {
+    const price = parseFloat(document.getElementById(`v_${id}`)?.value)||0;
+    const students = parseInt(document.getElementById(`paygo_students_${id}`)?.value)||0;
+    const monthlyRev = price * students * 4.3;
+    totalRev += monthlyRev;
+    totalStudents += students;
+    const revEl = document.getElementById(`paygo_rev_${id}`);
+    if(revEl) revEl.textContent = monthlyRev > 0 ? '$'+fmt(monthlyRev) : '—';
+  });
+  const trEl = document.getElementById('paygo_total_rev');
+  const tsEl = document.getElementById('paygo_total_students');
+  if(trEl) trEl.textContent = totalRev > 0 ? '$'+fmt(totalRev) : '—';
+  if(tsEl) tsEl.textContent = totalStudents > 0 ? totalStudents+' students' : '—';
+  // Sync totalStudents hidden
+  syncHidden('totalStudents', totalStudents);
+}
+
+function renderMembershipTable(container){
+  const totalRev = membershipRows.reduce((s,r)=> s + r.price * r.students, 0);
+  const totalStudents = membershipRows.reduce((s,r)=> s + r.students, 0);
+
+  let html = `
+    <div style="margin-bottom:6px">
+      <table class="mem-table">
+        <thead>
+          <tr>
+            <th style="width:170px">Monthly Price</th>
+            <th style="width:160px"># Weekly Lessons Included</th>
+            <th style="width:160px">Current # of Members</th>
+            <th class="r">Monthly Revenue</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="memTableBody">
+          ${membershipRows.map(r => `
+          <tr data-mem-id="${r.id}">
+            <td><div class="dollar"><input type="number" class="mem-price" value="${r.price}" min="0" step="50" oninput="updateMemRow(${r.id},'price',this.value)"></div></td>
+            <td><input type="number" class="mem-lessons" value="${r.lessons}" min="1" max="7" oninput="updateMemRow(${r.id},'lessons',this.value)"></td>
+            <td><input type="number" class="mem-students" value="${r.students}" min="0" oninput="updateMemRow(${r.id},'students',this.value)"></td>
+            <td class="rev-cell">$${fmt(r.price * r.students)}</td>
+            <td><button class="del-btn" onclick="removeMemRow(${r.id})">✕</button></td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr class="mem-total-row">
+            <td colspan="2" style="padding:8px 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Total — ${totalStudents} members</td>
+            <td style="padding:8px 10px;font-weight:700;font-size:15px;font-family:'Cormorant Garamond',serif">${totalStudents}</td>
+            <td class="mem-total-rev">$${fmt(totalRev)}/mo</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <button class="add-btn" onclick="addMemRow()">＋ Add Membership Tier</button>
+    <div class="frow" style="margin-top:14px">
+      <div class="fg w2"><label>Avg Lesson Duration (for horse hour calc)</label>
+        <select id="v_lessonDur" onchange="syncHidden('lessonDur',this.value)">
+          <option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option>
+        </select>
+      </div>
+      <div class="fg w2"><label>Eval / Intro Lesson Price</label>
+        <div class="dollar"><input type="number" id="v_priceEval" value="${getHidden('priceEval')}" min="0" oninput="syncHidden('priceEval',this.value)"></div>
+      </div>
+    </div>`;
+
+  container.innerHTML = html;
+  // Sync hidden totalStudents
+  syncHidden('totalStudents', totalStudents);
+}
+
+function addMemRow(){
+  membershipRows.push({id: nextMemId++, price:0, lessons:1, students:0});
+  renderPricingCard();
+}
+
+function removeMemRow(id){
+  if(membershipRows.length <= 1){ alert('Keep at least one membership tier.'); return; }
+  membershipRows = membershipRows.filter(r => r.id !== id);
+  renderPricingCard();
+}
+
+function updateMemRow(id, field, val){
+  const r = membershipRows.find(r => r.id === id);
+  if(!r) return;
+  r[field] = field === 'price' ? parseFloat(val)||0 : parseInt(val)||0;
+  // Update just the revenue cell and totals without full re-render
+  const row = document.querySelector(`tr[data-mem-id="${id}"]`);
+  if(row){
+    const revCell = row.querySelector('.rev-cell');
+    if(revCell) revCell.textContent = '$'+fmt(r.price * r.students);
+  }
+  // Update totals
+  const totalRev = membershipRows.reduce((s,r)=> s + r.price * r.students, 0);
+  const totalStudents = membershipRows.reduce((s,r)=> s + r.students, 0);
+  const totalRevEl = document.querySelector('.mem-total-rev');
+  if(totalRevEl) totalRevEl.textContent = '$'+fmt(totalRev)+'/mo';
+  const totalStudEl = document.querySelector('.mem-total-row td:nth-child(3)');
+  if(totalStudEl) totalStudEl.textContent = totalStudents;
+  const totalLabelEl = document.querySelector('.mem-total-row td:nth-child(1)');
+  if(totalLabelEl) totalLabelEl.textContent = `Total — ${totalStudents} members`;
+  syncHidden('totalStudents', totalStudents);
+}
+
+function getHidden(id){
+  return document.getElementById(id)?.value || '';
+}
+
+function syncHidden(id, val){
+  const el = document.getElementById(id);
+  if(el) el.value = val;
+}
+
+function getMemRevenue(){
+  // For membership model: total monthly rev = sum of price × students
+  const model = getChargeModel();
+  if(model === 'membership' || model === 'mixed'){
+    return membershipRows.reduce((s,r) => s + r.price * r.students, 0);
+  }
+  return null; // use per-lesson calc
+}
+
+function getMemStudentCount(){
+  return membershipRows.reduce((s,r) => s + r.students, 0);
+}
+
+// ═══════════════════════════════════════════════
+// ARENA MANAGEMENT
+// ═══════════════════════════════════════════════
+const ARENA_TYPES = [
+  {value:'indoor',    label:'🏗️ Indoor',           color:'var(--sky-lt)',  border:'#80B8E8'},
+  {value:'outdoor',   label:'🌿 Outdoor',           color:'var(--sage-lt)', border:'#88BB60'},
+  {value:'covered',   label:'⛺ Covered Outdoor',   color:'var(--gold-lt)', border:'#DDB840'},
+  {value:'roundpen',  label:'⭕ Round Pen',          color:'#F0E4FA',        border:'#C090E8'},
+  {value:'cvrdpen',   label:'🔵 Covered Round Pen', color:' var(--tan-lt)', border:'#CCA060'},
+];
+
+let arenas = [
+  {id:1, name:'Main Arena',   type:'indoor',  length:200, width:100, maxRiders:8},
+  {id:2, name:'Outdoor Ring', type:'outdoor', length:150, width:100, maxRiders:6},
+];
+let nextArenaId = 3;
+
+function addArena(){
+  arenas.push({id:nextArenaId++, name:'', type:'indoor', length:'', width:'', maxRiders:4});
+  renderArenas();
+}
+
+function removeArena(id){
+  if(arenas.length <= 1){ alert('Keep at least one arena.'); return; }
+  arenas = arenas.filter(a => a.id !== id);
+  renderArenas();
+}
+
+function updateArena(id, field, val){
+  const a = arenas.find(a => a.id === id);
+  if(!a) return;
+  a[field] = (field === 'name' || field === 'type') ? val : (parseFloat(val)||0);
+  // Re-color the row on type change
+  if(field === 'type') renderArenas();
+}
+
+function renderArenas(){
+  const tbody = document.getElementById('arenaTableBody');
+  if(!tbody) return;
+
+  tbody.innerHTML = arenas.map(a => {
+    const typeInfo = ARENA_TYPES.find(t => t.value === a.type) || ARENA_TYPES[0];
+    const typeOptions = ARENA_TYPES.map(t =>
+      `<option value="${t.value}"${a.type===t.value?' selected':''}>${t.label}</option>`
+    ).join('');
+
+    return `<tr>
+      <td style="padding:7px 8px 7px 10px;background:${typeInfo.color};border:1px solid ${typeInfo.border};border-right:none;border-radius:4px 0 0 4px">
+        <input type="text" value="${esc(a.name)}" placeholder="e.g. Main Arena"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid ${typeInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown)"
+          oninput="updateArena(${a.id},'name',this.value)">
+      </td>
+      <td style="padding:7px 6px;background:${typeInfo.color};border-top:1px solid ${typeInfo.border};border-bottom:1px solid ${typeInfo.border}">
+        <select style="width:100%;padding:5px 4px;font-size:12px;border:1.5px solid ${typeInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown)"
+          onchange="updateArena(${a.id},'type',this.value)">${typeOptions}</select>
+      </td>
+      <td style="padding:7px 6px;background:${typeInfo.color};border-top:1px solid ${typeInfo.border};border-bottom:1px solid ${typeInfo.border}">
+        <input type="number" value="${a.length||''}" placeholder="e.g. 200" min="0"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid ${typeInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown);text-align:right"
+          oninput="updateArena(${a.id},'length',this.value)">
+      </td>
+      <td style="padding:7px 6px;background:${typeInfo.color};border-top:1px solid ${typeInfo.border};border-bottom:1px solid ${typeInfo.border}">
+        <input type="number" value="${a.width||''}" placeholder="e.g. 100" min="0"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid ${typeInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown);text-align:right"
+          oninput="updateArena(${a.id},'width',this.value)">
+      </td>
+      <td style="padding:7px 6px;background:${typeInfo.color};border-top:1px solid ${typeInfo.border};border-bottom:1px solid ${typeInfo.border}">
+        <input type="number" value="${a.maxRiders}" min="1" max="30"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid ${typeInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown);text-align:center"
+          oninput="updateArena(${a.id},'maxRiders',this.value)">
+      </td>
+      <td style="padding:7px 10px 7px 6px;background:${typeInfo.color};border:1px solid ${typeInfo.border};border-left:none;border-radius:0 4px 4px 0">
+        <button class="del-btn" onclick="removeArena(${a.id})" title="Remove arena">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Show total capacity hint
+  const totalMax = arenas.reduce((s,a) => s + (a.maxRiders||0), 0);
+  const totalSqft = arenas.reduce((s,a) => s + ((a.length||0) * (a.width||0)), 0);
+  let hint = document.getElementById('arenaTotalHint');
+  if(!hint){
+    hint = document.createElement('div');
+    hint.id = 'arenaTotalHint';
+    hint.style.cssText = 'margin-top:8px;font-size:12px;color:var(--muted);padding:6px 10px;background:var(--cream);border-radius:3px;border:1px solid var(--border)';
+    tbody.closest('.card-b').appendChild(hint);
+  }
+  hint.innerHTML = `<strong style="color:var(--brown)">${arenas.length} arena${arenas.length!==1?'s':''}</strong> · 
+    <strong style="color:var(--brown)">${totalMax} max simultaneous riders</strong> total capacity · 
+    ${totalSqft>0?`<strong style="color:var(--brown)">${totalSqft.toLocaleString()} ft²</strong> total riding space`:''}`;
+}
+
+// ═══════════════════════════════════════════════
+// INSTRUCTOR MANAGEMENT
+// ═══════════════════════════════════════════════
+const INSTRUCTOR_ROLES = [
+  {value:'owner',    label:'👑 Business Owner',       color:'#FDF5CC', border:'#CCA020'},
+  {value:'fulltime', label:'💼 Full-Time Instructor',  color:'var(--sage-lt)', border:'#88BB60'},
+  {value:'parttime', label:'🕐 Part-Time Instructor',  color:'var(--sky-lt)',  border:'#80B8E8'},
+  {value:'barn',     label:'🐴 Barn / Support Staff',  color:'var(--tan-lt)',  border:'#CCA060'},
+];
+
+const PAY_TYPES = [
+  {value:'per_hour',    label:'Per Hour'},
+  {value:'per_lesson',  label:'Per Lesson'},
+  {value:'parttime_sal',label:'Part-Time Salary'},
+  {value:'fulltime_sal',label:'Full-Time Salary'},
+];
+
+let instructors = [
+  {id:1, name:'Sarah Johnson', role:'owner',    payType:'per_hour',     taxType:'1099', payRate:0,     hoursPerWeek:20},
+  {id:2, name:'',              role:'fulltime',  payType:'fulltime_sal', taxType:'w2',   payRate:45000, hoursPerWeek:40},
+  {id:3, name:'',              role:'parttime',  payType:'per_hour',     taxType:'1099', payRate:28,    hoursPerWeek:15},
+];
+let nextInstrId = 4;
+
+function addInstructor(){
+  instructors.push({id:nextInstrId++, name:'', role:'parttime', payType:'per_hour', taxType:'1099', payRate:0, hoursPerWeek:10});
+  renderInstructors();
+}
+
+function removeInstructor(id){
+  instructors = instructors.filter(i => i.id !== id);
+  renderInstructors();
+}
+
+function updateInstructor(id, field, val){
+  const ins = instructors.find(i => i.id === id);
+  if(!ins) return;
+  ins[field] = (field === 'name' || field === 'role' || field === 'payType' || field === 'taxType') ? val : (parseFloat(val)||0);
+  if(field === 'role' || field === 'payType') renderInstructors();
+  else refreshInstructorCost(id);
+}
+
+function calcMonthlyCost(ins){
+  const hrs = ins.hoursPerWeek || 0;
+  switch(ins.payType){
+    case 'per_lesson':   return ins.payRate * hrs * 4.3;
+    case 'per_hour':     return ins.payRate * hrs * 4.3;
+    case 'parttime_sal': return ins.payRate / 12;
+    case 'fulltime_sal': return ins.payRate / 12;
+    default: return 0;
+  }
+}
+
+function refreshInstructorCost(id){
+  const ins = instructors.find(i => i.id === id);
+  if(!ins) return;
+  const el = document.getElementById(`instr_cost_${id}`);
+  if(el) el.textContent = '$' + fmt(calcMonthlyCost(ins));
+  refreshInstructorTotal();
+}
+
+function refreshInstructorTotal(){
+  const total = instructors.reduce((s,i) => s + calcMonthlyCost(i), 0);
+  const hint = document.getElementById('instructorTotalHint');
+  if(hint) hint.innerHTML = `<div style="margin-top:8px;font-size:12px;color:var(--muted);padding:6px 10px;background:var(--cream);border-radius:3px;border:1px solid var(--border)">
+    <strong style="color:var(--brown)">${instructors.length} team member${instructors.length!==1?'s':''}</strong> · 
+    Estimated total instructor cost: <strong style="color:var(--rust)">$${fmt(total)}/month</strong> · 
+    <strong style="color:var(--brown)">$${fmt(total*12)}/year</strong>
+  </div>`;
+}
+
+function getPayRateLabel(payType){
+  switch(payType){
+    case 'per_lesson':   return 'Rate per Lesson';
+    case 'per_hour':     return 'Rate per Hour';
+    case 'parttime_w2':  return 'Annual Salary';
+    case 'fulltime_w2':  return 'Annual Salary';
+    default: return 'Rate';
+  }
+}
+
+function getHoursLabel(payType){
+  return payType === 'per_lesson' ? 'Lessons/Week' : 'Hours/Week';
+}
+
+function renderInstructors(){
+  const tbody = document.getElementById('instructorTableBody');
+  if(!tbody) return;
+
+  tbody.innerHTML = instructors.map(ins => {
+    const roleInfo  = INSTRUCTOR_ROLES.find(r => r.value === ins.role)  || INSTRUCTOR_ROLES[2];
+    const roleOpts  = INSTRUCTOR_ROLES.map(r =>
+      `<option value="${r.value}"${ins.role===r.value?' selected':''}>${r.label}</option>`).join('');
+    const payOpts   = PAY_TYPES.map(p =>
+      `<option value="${p.value}"${ins.payType===p.value?' selected':''}>${p.label}</option>`).join('');
+    const isSalary  = ins.payType === 'parttime_sal' || ins.payType === 'fulltime_sal';
+    const cost      = calcMonthlyCost(ins);
+    const rateLabel = getPayRateLabel(ins.payType);
+    const hrsLabel  = getHoursLabel(ins.payType);
+
+    return `<tr>
+      <td style="padding:7px 8px 7px 10px;background:${roleInfo.color};border:1px solid ${roleInfo.border};border-right:none;border-radius:4px 0 0 4px">
+        <input type="text" value="${esc(ins.name)}" placeholder="Full name"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid ${roleInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown)"
+          oninput="updateInstructor(${ins.id},'name',this.value)">
+      </td>
+      <td style="padding:7px 6px;background:${roleInfo.color};border-top:1px solid ${roleInfo.border};border-bottom:1px solid ${roleInfo.border}">
+        <select style="width:100%;padding:5px 4px;font-size:12px;border:1.5px solid ${roleInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown)"
+          onchange="updateInstructor(${ins.id},'role',this.value)">${roleOpts}</select>
+      </td>
+      <td style="padding:7px 6px;background:${roleInfo.color};border-top:1px solid ${roleInfo.border};border-bottom:1px solid ${roleInfo.border}">
+        <select style="width:100%;padding:5px 4px;font-size:12px;border:1.5px solid ${roleInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown)"
+          onchange="updateInstructor(${ins.id},'payType',this.value)">${payOpts}</select>
+      </td>
+      <td style="padding:7px 6px;background:${roleInfo.color};border-top:1px solid ${roleInfo.border};border-bottom:1px solid ${roleInfo.border}">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:4px 7px;border-radius:3px;border:1.5px solid ${roleInfo.border};background:${ins.taxType==='1099'?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'}">
+            <input type="radio" name="tax_${ins.id}" value="1099" ${ins.taxType==='1099'?'checked':''} onchange="updateInstructor(${ins.id},'taxType',this.value)" style="width:auto;padding:0;border:none;background:none;accent-color:var(--brown)">
+            <span style="font-size:11px;font-weight:700;color:var(--brown)">1099</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:4px 7px;border-radius:3px;border:1.5px solid ${roleInfo.border};background:${ins.taxType==='w2'?'rgba(255,255,255,.9)':'rgba(255,255,255,.3)'}">
+            <input type="radio" name="tax_${ins.id}" value="w2" ${ins.taxType==='w2'?'checked':''} onchange="updateInstructor(${ins.id},'taxType',this.value)" style="width:auto;padding:0;border:none;background:none;accent-color:var(--brown)">
+            <span style="font-size:11px;font-weight:700;color:var(--brown)">W-2</span>
+          </label>
+        </div>
+      </td>
+      <td style="padding:7px 6px;background:${roleInfo.color};border-top:1px solid ${roleInfo.border};border-bottom:1px solid ${roleInfo.border}">
+        <div style="position:relative">
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none">$</span>
+          <input type="number" value="${ins.payRate||''}" min="0" placeholder="${isSalary?'e.g. 45000':'e.g. 35'}"
+            style="width:100%;padding:5px 6px 5px 18px;font-size:13px;border:1.5px solid ${roleInfo.border};background:rgba(255,255,255,.7);border-radius:3px;color:var(--brown)"
+            oninput="updateInstructor(${ins.id},'payRate',this.value)">
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;padding-left:2px">${rateLabel}</div>
+      </td>
+      <td style="padding:7px 6px;background:${roleInfo.color};border-top:1px solid ${roleInfo.border};border-bottom:1px solid ${roleInfo.border}">
+        <input type="number" value="${ins.hoursPerWeek||''}" min="0" max="80" placeholder="hrs"
+          style="width:100%;padding:5px 8px;font-size:13px;text-align:center;border:1.5px solid ${roleInfo.border};background:${isSalary?'rgba(200,200,200,.3)':'rgba(255,255,255,.7)'};border-radius:3px;color:var(--brown)"
+          oninput="updateInstructor(${ins.id},'hoursPerWeek',this.value)" ${isSalary?'placeholder="optional"':''}>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;text-align:center">${hrsLabel}</div>
+      </td>
+      <td style="padding:7px 8px;background:${roleInfo.color};border-top:1px solid ${roleInfo.border};border-bottom:1px solid ${roleInfo.border}">
+        <span id="instr_cost_${ins.id}" style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--sage)">${cost>0?'$'+fmt(cost):'—'}</span>
+        <div style="font-size:10px;color:var(--muted)">/month</div>
+      </td>
+      <td style="padding:7px 10px 7px 4px;background:${roleInfo.color};border:1px solid ${roleInfo.border};border-left:none;border-radius:0 4px 4px 0">
+        <button class="del-btn" onclick="removeInstructor(${ins.id})" title="Remove">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  refreshInstructorTotal();
+}
+
+// ═══════════════════════════════════════════════
+// BARN / ACCOMMODATION MANAGEMENT
+// ═══════════════════════════════════════════════
+const ACCOM_TYPES = {
+  stall:   {label:'🏠 Stall',       color:'#F5EDD0',        border:'#CCA060'},
+  paddock: {label:'🌿 Paddock',     color:'var(--sage-lt)', border:'#88BB60'},
+  field:   {label:'🌾 Field Board', color:'var(--gold-lt)', border:'#CCA020'},
+  other:   {label:'✨ Other',       color:'var(--sky-lt)',  border:'#80B8E8'},
+};
+
+const STALL_USES = [
+  {value:'lesson',        label:'🐴 Lesson Horse'},
+  {value:'boarder',       label:'🏡 Boarder'},
+  {value:'boarder_lesson',label:'🐴🏡 Boarder / Lesson Horse'},
+  {value:'personal',      label:'👤 Personal Horse'},
+  {value:'investment',    label:'💰 Investment Horse'},
+  {value:'broodmare',     label:'🤱 Broodmare'},
+  {value:'stallion',      label:'⚡ Stallion'},
+  {value:'homebred',      label:'🌱 Homebred'},
+  {value:'empty',         label:'— Empty'},
+];
+
+const SHOWS_BOARD    = ['boarder', 'boarder_lesson'];
+const SHOWS_TRAINING = ['boarder', 'boarder_lesson', 'personal', 'investment', 'broodmare', 'stallion', 'homebred'];
+
+// Barn entries (named barns with stall counts)
+let barnEntries = [
+  {id:1, name:'Barn 1', stalls:12},
+  {id:2, name:'Barn 2', stalls:8},
+];
+let nextBarnEntryId = 3;
+
+// Flat stall rows (built from barnEntries + shared counts)
+let stallRows = [];
+let nextStallId = 1;
+
+function renderBarnSetupRows(){
+  const tbody = document.getElementById('barnSetupRows');
+  if(!tbody) return;
+  tbody.innerHTML = barnEntries.map(b => `
+    <tr>
+      <td style="padding:7px 8px 7px 10px;background:#F5EDD0;border:1px solid #CCA060;border-right:none;border-radius:4px 0 0 4px">
+        <input type="text" value="${esc(b.name)}" placeholder="e.g. Main Barn"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid #CCA060;background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+          oninput="updateBarnEntry(${b.id},'name',this.value)">
+      </td>
+      <td style="padding:7px 8px;background:#F5EDD0;border-top:1px solid #CCA060;border-bottom:1px solid #CCA060">
+        <input type="number" value="${b.stalls}" min="0" max="200"
+          style="width:100%;padding:5px 8px;font-size:14px;text-align:center;border:1.5px solid #CCA060;background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+          oninput="updateBarnEntry(${b.id},'stalls',this.value)">
+      </td>
+      <td style="padding:7px 8px 7px 4px;background:#F5EDD0;border:1px solid #CCA060;border-left:none;border-radius:0 4px 4px 0">
+        ${barnEntries.length > 1
+          ? `<button class="del-btn" onclick="removeBarnEntry(${b.id})">✕</button>`
+          : `<span style="display:inline-block;width:32px"></span>`}
+      </td>
+    </tr>`).join('');
+}
+
+function addBarnEntry(){
+  const n = barnEntries.length + 1;
+  barnEntries.push({id:nextBarnEntryId++, name:`Barn ${n}`, stalls:0});
+  renderBarnSetupRows();
+}
+
+function removeBarnEntry(id){
+  barnEntries = barnEntries.filter(b => b.id !== id);
+  renderBarnSetupRows();
+}
+
+function updateBarnEntry(id, field, val){
+  const b = barnEntries.find(b => b.id === id);
+  if(b) b[field] = field === 'name' ? val : (parseInt(val)||0);
+}
+
+function buildBarnFromCounts(){
+  // Read latest values directly from DOM inputs
+  barnEntries.forEach(b => {
+    const nameEl  = document.querySelector(`#barnSetupRows input[type=text]`);
+    // Already updated via oninput
+  });
+
+  const paddocks = parseInt(document.getElementById('barnCount_paddock')?.value)||0;
+  const fields   = parseInt(document.getElementById('barnCount_field')?.value)||0;
+  const others   = parseInt(document.getElementById('barnCount_other')?.value)||0;
+  const totalStalls = barnEntries.reduce((s,b)=>s+(b.stalls||0),0);
+
+  if(totalStalls + paddocks + fields + others === 0){
+    document.getElementById('barnCountHint').textContent = 'Please enter at least one accommodation.';
+    return;
+  }
+
+  stallRows = [];
+  nextStallId = 1;
+
+  // Stalls — grouped by barn
+  barnEntries.forEach(b => {
+    for(let i=0; i < (b.stalls||0); i++){
+      stallRows.push({id:nextStallId++, type:'stall', barnName:b.name, use:'empty', name:'', board:0, training:0});
+    }
+  });
+  // Shared accommodations
+  for(let i=0; i<paddocks; i++) stallRows.push({id:nextStallId++, type:'paddock', barnName:'', use:'empty', name:'', board:0, training:0});
+  for(let i=0; i<fields;   i++) stallRows.push({id:nextStallId++, type:'field',   barnName:'', use:'empty', name:'', board:0, training:0});
+  for(let i=0; i<others;   i++) stallRows.push({id:nextStallId++, type:'other',   barnName:'', use:'empty', name:'', board:0, training:0});
+
+  document.getElementById('barnCountStep').style.display  = 'none';
+  document.getElementById('barnDetailStep').style.display = 'block';
+  renderBarnTable();
+}
+
+function resetBarn(){
+  document.getElementById('barnCountStep').style.display  = 'block';
+  document.getElementById('barnDetailStep').style.display = 'none';
+}
+
+function updateStall(id, field, val){
+  const s = stallRows.find(s => s.id === id);
+  if(!s) return;
+  s[field] = (field === 'use' || field === 'name') ? val : (parseFloat(val)||0);
+  if(field === 'use') renderBarnTable();
+  else refreshBarnSummary();
+}
+
+function renderBarnTable(){
+  const tbody = document.getElementById('barnTableBody');
+  if(!tbody) return;
+
+  let html = '';
+  let lastSection = null; // tracks "Barn 1", "Barn 2", "Paddocks", etc.
+
+  stallRows.forEach(s => {
+    const t       = ACCOM_TYPES[s.type] || ACCOM_TYPES.stall;
+    const showB   = SHOWS_BOARD.includes(s.use);
+    const showT   = SHOWS_TRAINING.includes(s.use);
+    const isEmpty = s.use === 'empty';
+    const useOpts = STALL_USES.map(u =>
+      `<option value="${u.value}"${s.use===u.value?' selected':''}>${u.label}</option>`).join('');
+
+    // Determine section label
+    let sectionKey, sectionLabel, sectionCount;
+    if(s.type === 'stall'){
+      sectionKey   = `barn_${s.barnName}`;
+      sectionLabel = `🏠 ${s.barnName}`;
+      sectionCount = stallRows.filter(r=>r.type==='stall'&&r.barnName===s.barnName).length;
+    } else {
+      sectionKey   = s.type;
+      sectionLabel = t.label + 's';
+      sectionCount = stallRows.filter(r=>r.type===s.type).length;
+    }
+
+    if(sectionKey !== lastSection){
+      html += `<tr><td colspan="6" style="padding:10px 10px 3px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid var(--border)">
+        ${sectionLabel} <span style="font-weight:400">(${sectionCount})</span>
+      </td></tr>`;
+      lastSection = sectionKey;
+    }
+
+    // Number within this section
+    const secRows = s.type === 'stall'
+      ? stallRows.filter(r=>r.type==='stall'&&r.barnName===s.barnName)
+      : stallRows.filter(r=>r.type===s.type);
+    const typeIdx = secRows.findIndex(r=>r.id===s.id) + 1;
+
+    // Location label: barn name for stalls, type label for others
+    const locationLabel = s.type === 'stall' ? s.barnName : t.label;
+
+    html += `<tr>
+      <td style="padding:5px 4px 5px 10px;background:${t.color};border:1px solid ${t.border};border-right:none;border-radius:4px 0 0 4px;font-size:11px;font-weight:700;color:var(--muted);text-align:center;width:46px">${typeIdx}</td>
+      <td style="padding:5px 6px;background:${t.color};border-top:1px solid ${t.border};border-bottom:1px solid ${t.border};width:155px">
+        <span style="font-size:12px;font-weight:600;color:var(--brown)">${locationLabel}</span>
+      </td>
+      <td style="padding:5px 6px;background:${t.color};border-top:1px solid ${t.border};border-bottom:1px solid ${t.border};width:165px">
+        <select style="width:100%;padding:4px;font-size:12px;border:1.5px solid ${t.border};background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+          onchange="updateStall(${s.id},'use',this.value)">${useOpts}</select>
+      </td>
+      <td style="padding:5px 6px;background:${t.color};border-top:1px solid ${t.border};border-bottom:1px solid ${t.border};width:155px">
+        <input type="text" value="${esc(s.name)}" placeholder="${isEmpty?'—':'Horse name…'}" ${isEmpty?'disabled':''}
+          style="width:100%;padding:4px 7px;font-size:12px;border:1.5px solid ${t.border};background:${isEmpty?'rgba(200,200,200,.25)':'rgba(255,255,255,.8)'};border-radius:3px;color:${isEmpty?'var(--muted)':'var(--brown)'}"
+          oninput="updateStall(${s.id},'name',this.value)">
+      </td>
+      <td style="padding:5px 6px;background:${t.color};border-top:1px solid ${t.border};border-bottom:1px solid ${t.border};width:125px">
+        ${showB ? `<div style="position:relative">
+          <span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none">$</span>
+          <input type="number" value="${s.board||''}" min="0" placeholder="0"
+            style="width:100%;padding:4px 6px 4px 16px;font-size:12px;border:1.5px solid ${t.border};background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+            oninput="updateStall(${s.id},'board',this.value)"></div>`
+        : `<span style="font-size:12px;color:var(--muted);padding-left:6px">—</span>`}
+      </td>
+      <td style="padding:5px 10px 5px 6px;background:${t.color};border:1px solid ${t.border};border-left:none;border-radius:0 4px 4px 0">
+        ${showT ? `<div style="position:relative">
+          <span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none">$</span>
+          <input type="number" value="${s.training||''}" min="0" placeholder="0"
+            style="width:100%;padding:4px 6px 4px 16px;font-size:12px;border:1.5px solid ${t.border};background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+            oninput="updateStall(${s.id},'training',this.value)"></div>`
+        : `<span style="font-size:12px;color:var(--muted);padding-left:6px">—</span>`}
+      </td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+  refreshBarnSummary();
+}
+
+function refreshBarnSummary(){
+  const total    = stallRows.length;
+  const lessons   = stallRows.filter(s=>s.use==='lesson'||s.use==='boarder_lesson').length;
+  const boarders  = stallRows.filter(s=>s.use==='boarder'||s.use==='boarder_lesson').length;
+  const personal  = stallRows.filter(s=>s.use==='personal').length;
+  const empty    = stallRows.filter(s=>s.use==='empty').length;
+  const boardRev    = stallRows.filter(s=>s.use==='boarder').reduce((sum,s)=>sum+(s.board||0),0);
+  const trainingRev = stallRows.filter(s=>SHOWS_TRAINING.includes(s.use)).reduce((sum,s)=>sum+(s.training||0),0);
+  const totalRev    = boardRev + trainingRev;
+
+  // Capacity badge
+  const badge = document.getElementById('barnCapacityBadge');
+  if(badge){
+    const stalls   = stallRows.filter(s=>s.type==='stall').length;
+    const paddocks = stallRows.filter(s=>s.type==='paddock').length;
+    const fields   = stallRows.filter(s=>s.type==='field').length;
+    const others   = stallRows.filter(s=>s.type==='other').length;
+    badge.innerHTML = `<strong style="color:var(--brown);font-size:14px">${total}</strong> <span style="color:var(--muted)">total capacity</span>`
+      + (stalls   ? ` · <strong style="color:var(--brown)">${stalls}</strong> <span style="color:var(--muted)">stalls</span>` : '')
+      + (paddocks ? ` · <strong style="color:var(--sage)">${paddocks}</strong> <span style="color:var(--muted)">paddocks</span>` : '')
+      + (fields   ? ` · <strong style="color:var(--gold)">${fields}</strong> <span style="color:var(--muted)">field board</span>` : '')
+      + (others   ? ` · <strong style="color:var(--sky)">${others}</strong> <span style="color:var(--muted)">other</span>` : '');
+  }
+
+  const summary = document.getElementById('barnSummary');
+  if(!summary) return;
+  if(total === 0){ summary.style.display='none'; return; }
+  summary.style.display = 'block';
+  summary.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:10px 12px;background:var(--cream);border:1px solid var(--border);border-radius:4px;font-size:12px">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;flex:1">
+      ${lessons  ? `<span>🐴 <strong style="color:var(--brown)">${lessons}</strong> lesson horse${lessons!==1?'s':''}</span>` : ''}
+      ${boarders ? `<span>🏡 <strong style="color:var(--brown)">${boarders}</strong> boarder${boarders!==1?'s':''}</span>` : ''}
+      ${personal ? `<span>👤 <strong style="color:var(--brown)">${personal}</strong> personal</span>` : ''}
+      ${empty    ? `<span style="color:var(--muted)">⬜ ${empty} empty</span>` : ''}
+    </div>
+    ${totalRev > 0 ? `<div style="text-align:right">
+      <span style="color:var(--muted)">Board + training: </span>
+      <strong style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--sage)">$${fmt(totalRev)}/mo</strong>
+    </div>` : ''}
+  </div>`;
+}
+
+function renderBarn(){ /* no-op — barn uses buildBarnFromCounts flow */ }
+
+// ═══════════════════════════════════════════════
+// SCHOOL — OWNERS & PROPERTY
+// ═══════════════════════════════════════════════
+let owners = [
+  {id:1, name:'', pct:100, role:'Owner / Operator'},
+];
+let nextOwnerId = 2;
+
+function addOwner(){
+  owners.push({id:nextOwnerId++, name:'', pct:0, role:''});
+  renderOwners();
+}
+
+function removeOwner(id){
+  owners = owners.filter(o => o.id !== id);
+  renderOwners();
+}
+
+function updateOwner(id, field, val){
+  const o = owners.find(o => o.id === id);
+  if(!o) return;
+  o[field] = field === 'pct' ? (parseFloat(val)||0) : val;
+  refreshOwnershipTotal();
+}
+
+function refreshOwnershipTotal(){
+  const total = owners.reduce((s,o) => s + (o.pct||0), 0);
+  const warn  = document.getElementById('ownershipWarning');
+  if(!warn) return;
+  if(Math.abs(total - 100) < 0.01 || owners.length === 0){
+    warn.style.display = 'none';
+  } else {
+    warn.style.display = 'block';
+    warn.textContent = `Ownership totals ${total}% — should equal 100%.`;
+  }
+}
+
+function renderOwners(){
+  const tbody = document.getElementById('ownersTableBody');
+  if(!tbody) return;
+  tbody.innerHTML = owners.map(o => `
+    <tr>
+      <td style="padding:6px 8px 6px 10px;background:var(--cream);border:1px solid var(--border);border-right:none;border-radius:4px 0 0 4px">
+        <input type="text" value="${esc(o.name)}" placeholder="Full name"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid var(--border);background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+          oninput="updateOwner(${o.id},'name',this.value)">
+      </td>
+      <td style="padding:6px 8px;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);width:130px">
+        <div style="position:relative">
+          <input type="number" value="${o.pct}" min="0" max="100" step="0.01"
+            style="width:100%;padding:5px 28px 5px 8px;font-size:13px;border:1.5px solid var(--border);background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown);text-align:right"
+            oninput="updateOwner(${o.id},'pct',this.value)">
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none">%</span>
+        </div>
+      </td>
+      <td style="padding:6px 8px;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+        <input type="text" value="${esc(o.role)}" placeholder="e.g. Owner / Operator, Silent Partner…"
+          style="width:100%;padding:5px 8px;font-size:13px;border:1.5px solid var(--border);background:rgba(255,255,255,.8);border-radius:3px;color:var(--brown)"
+          oninput="updateOwner(${o.id},'role',this.value)">
+      </td>
+      <td style="padding:6px 8px 6px 4px;background:var(--cream);border:1px solid var(--border);border-left:none;border-radius:0 4px 4px 0">
+        ${owners.length > 1
+          ? `<button class="del-btn" onclick="removeOwner(${o.id})">✕</button>`
+          : `<span style="display:inline-block;width:28px"></span>`}
+      </td>
+    </tr>`).join('');
+  refreshOwnershipTotal();
+}
+
+function renderPropertyPayment(){
+  const status = document.getElementById('schoolPropertyStatus')?.value || 'own';
+  const field  = document.getElementById('propertyPaymentField');
+  if(!field) return;
+
+  if(status === 'own'){
+    field.innerHTML = `<label>Mortgage Payment / Month</label>
+      <div class="dollar"><input type="number" id="propertyPayment" min="0" placeholder="0"></div>`;
+  } else if(status === 'rent'){
+    field.innerHTML = `<label>Monthly Rent</label>
+      <div class="dollar"><input type="number" id="propertyPayment" min="0" placeholder="0"></div>`;
+  } else {
+    field.innerHTML = `<label>Lease-to-Own Payment / Month</label>
+      <div class="dollar"><input type="number" id="propertyPayment" min="0" placeholder="0"></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// WEEKLY SCHEDULE CALENDAR v4
+// ═══════════════════════════════════════════════
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+const LESSON_TYPES = {
+  private: {label:'🐴 Private',      bg:'var(--gold-lt)',  border:'#DDB840'},
+  group:   {label:'👥 Group',        bg:'var(--sage-lt)', border:'#88BB60'},
+  semi:    {label:'👫 Semi-Private', bg:'#F0E4FA',        border:'#C090E8'},
+  eval:    {label:'🔍 Eval',         bg:'var(--sky-lt)',  border:'#80B8E8'},
+};
+const STUDENT_TYPES = {
+  lesson_horse: {label:'🐴 Lesson Horse', badge:'bg:#FFF3CD;color:#856404;border:#DDB840'},
+  owner:        {label:'🏡 Owner/Boarder', badge:'bg:#D1ECF1;color:#0C5460;border:#80B8E8'},
+};
+
+// Each lesson: {id, arena, day, startH, startM, dur, type, instructor, students:[{name,horse,boarderHorse}]}
+let schedLessons = [
+  {id:1,  arena:'Main Arena',   day:'Mon', startH:9,  startM:0,  dur:60, type:'private', instructor:'', students:[{name:'',horse:''}]},
+  {id:2,  arena:'Main Arena',   day:'Mon', startH:10, startM:0,  dur:60, type:'group', instructor:'', students:[{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''}]},
+  {id:3,  arena:'Main Arena',   day:'Tue', startH:9,  startM:0,  dur:60, type:'private', instructor:'', students:[{name:'',horse:''}]},
+  {id:4,  arena:'Main Arena',   day:'Wed', startH:9,  startM:0,  dur:60, type:'group', instructor:'', students:[{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''}]},
+  {id:5,  arena:'Main Arena',   day:'Wed', startH:9,  startM:0,  dur:45, type:'semi',        instructor:'', students:[{name:'',horse:''},{name:'',horse:''}]},
+  {id:6,  arena:'Main Arena',   day:'Thu', startH:9,  startM:0,  dur:60, type:'private', instructor:'', students:[{name:'',horse:''}]},
+  {id:7,  arena:'Main Arena',   day:'Fri', startH:9,  startM:0,  dur:60, type:'group', instructor:'', students:[{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''}]},
+  {id:8,  arena:'Outdoor Ring', day:'Tue', startH:10, startM:0,  dur:60, type:'group', instructor:'', students:[{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''}]},
+  {id:9,  arena:'Outdoor Ring', day:'Thu', startH:10, startM:0,  dur:60, type:'semi',        instructor:'', students:[{name:'',horse:''},{name:'',horse:''}]},
+  {id:10, arena:'Main Arena',   day:'Sat', startH:8,  startM:0,  dur:60, type:'private', instructor:'', students:[{name:'',horse:''}]},
+  {id:11, arena:'Main Arena',   day:'Sat', startH:9,  startM:0,  dur:60, type:'group', instructor:'', students:[{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''},{name:'',horse:''}]},
+  {id:12, arena:'Outdoor Ring', day:'Sat', startH:10, startM:0,  dur:60, type:'eval', instructor:'', students:[{name:'',horse:''}]},
+];
+let nextSchedId = 13;
+
+function getSchedArenas(){
+  if(arenas && arenas.length) return arenas.map(a=>a.name||`Arena ${a.id}`).filter(Boolean);
+  return ['Main Arena'];
+}
+function getSchedInstructors(){
+  if(instructors && instructors.length) return instructors.map(i=>i.name).filter(Boolean);
+  return [];
+}
+function getSchedHorses(){
+  const list = document.querySelectorAll('.horse-name-input');
+  if(list.length) return [...list].map(el=>el.value).filter(Boolean);
+  if(typeof horses !== 'undefined') return horses.map(h=>h.name).filter(Boolean);
+  return ['Biscuit','Dakota','Rosie','Thunder'];
+}
+
+// ── Add / Edit lesson modal ──────────────────────
+function schedAddLesson(day, startH){
+  schedEditId = null;
+  const arena = getSchedArenas()[0]||'';
+  showSchedModal({id:null, arena, day: day||'Mon', startH: startH||9, startM:0, dur:60, type:'private', instructor:'', students:[{name:'',horse:''}]});
+}
+function schedEditLesson(id){
+  const l = schedLessons.find(l=>l.id===id);
+  if(l){schedEditId=id; showSchedModal({...l, students: l.students.map(s=>({...s}))});}
+}
+function schedDeleteLesson(id){
+  schedLessons = schedLessons.filter(l=>l.id!==id);
+  renderScheduleCalendar();
+  syncSchedHiddenInputs();
+}
+
+let schedEditId = null;
+
+function showSchedModal(l){
+  const arenaList = getSchedArenas();
+  const instrList = getSchedInstructors();
+  const horseList = getSchedHorses();
+
+  const arenaOpts = arenaList.map(a=>`<option value="${esc(a)}"${l.arena===a?' selected':''}>${esc(a)}</option>`).join('');
+  const dayOpts   = DAYS.map(d=>`<option value="${d}"${l.day===d?' selected':''}>${d}</option>`).join('');
+  const typeOpts  = Object.entries(LESSON_TYPES).map(([v,t])=>`<option value="${v}"${l.type===v?' selected':''}>${t.label}</option>`).join('');
+  const instrOpts = `<option value="">— Unassigned —</option>`+instrList.map(n=>`<option value="${esc(n)}"${l.instructor===n?' selected':''}>${esc(n)}</option>`).join('');
+  const durOpts   = [30,45,60,75,90,120].map(d=>`<option value="${d}"${l.dur===d?' selected':''}>${d} min</option>`).join('');
+  const fmt2 = n=>String(n).padStart(2,'0');
+
+
+  // Student rows — horse dropdown + "boarder's own horse" checkbox per student
+  const studRows = (l.students||[{name:'',horse:'',boarderHorse:false}]).map((s,i)=>{
+    const isBoarder = !!s.boarderHorse;
+    const horseOpts = `<option value="">— School horse —</option>`+horseList.map(h=>`<option value="${esc(h)}"${s.horse===h?' selected':''}>${esc(h)}</option>`).join('');
+    return `<tr id="smRow_${i}">
+      <td style="padding:3px 4px;vertical-align:top"><input class="sm-stud-name" value="${esc(s.name)}" placeholder="Student name" style="width:100%;padding:4px 6px;font-size:11px;border:1px solid var(--border);border-radius:3px"></td>
+      <td style="padding:3px 4px;vertical-align:top">
+        <select class="sm-stud-horse" style="width:100%;padding:4px 6px;font-size:11px;border:1px solid var(--border);border-radius:3px;${isBoarder?'display:none':''}">${horseOpts}</select>
+        ${isBoarder ? `<div style="font-size:11px;padding:4px 6px;background:#D1ECF1;color:#0C5460;border-radius:3px;border:1px solid #80B8E8">🏡 Boarder's own horse</div>` : ''}
+        <label style="display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10px;color:var(--muted);cursor:pointer">
+          <input type="checkbox" class="sm-stud-boarder" ${isBoarder?'checked':''} onchange="smToggleBoarder(this)" style="margin:0">
+          Boarder's own horse
+        </label>
+      </td>
+      <td style="padding:3px 4px;width:28px;vertical-align:top"><button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);line-height:1;margin-top:3px">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  let overlay = document.getElementById('schedModalOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'schedModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px';
+    overlay.onclick = e=>{if(e.target===overlay)closeSchedModal();};
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div style="background:#FAF7F0;border-radius:8px;padding:22px 26px;width:480px;max-width:98vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+      <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:16px">${schedEditId?'Edit':'Add'} Lesson</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="fg" style="margin:0;grid-column:1/-1"><label>Arena</label><select id="sm_arena" style="width:100%">${arenaOpts}</select></div>
+        <div class="fg" style="margin:0"><label>Day</label><select id="sm_day" style="width:100%">${dayOpts}</select></div>
+        <div class="fg" style="margin:0"><label>Start Time</label><input type="time" id="sm_time" value="${fmt2(l.startH)}:${fmt2(l.startM)}" style="width:100%"></div>
+        <div class="fg" style="margin:0"><label>Duration</label><select id="sm_dur" style="width:100%">${durOpts}</select></div>
+        <div class="fg" style="margin:0"><label>Lesson Type</label><select id="sm_type" style="width:100%">${typeOpts}</select></div>
+        <div class="fg" style="margin:0;grid-column:1/-1"><label>Instructor</label><select id="sm_instr" style="width:100%">${instrOpts}</select></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Students & Horses</div>
+      <div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:var(--cream);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">
+            <th style="padding:5px 8px;text-align:left;width:45%">Student Name</th>
+            <th style="padding:5px 8px;text-align:left">Horse</th>
+            <th style="width:28px"></th>
+          </tr></thead>
+          <tbody id="smStudentRows">${studRows}</tbody>
+        </table>
+      </div>
+      <button onclick="smAddStudent()" class="add-btn" style="margin-bottom:16px;font-size:11px">＋ Add Student</button>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        ${schedEditId?`<button class="btn btn-s" onclick="schedDeleteLesson(${schedEditId});closeSchedModal()" style="font-size:11px;color:var(--rust);border-color:var(--rust);margin-right:auto">🗑 Delete</button>`:''}
+        <button class="btn btn-s" onclick="closeSchedModal()" style="font-size:11px">Cancel</button>
+        <button class="btn btn-p" onclick="saveSchedModal()" style="font-size:11px">Save Lesson</button>
+      </div>
+    </div>`;
+}
+
+function smToggleBoarder(cb){
+  const td = cb.closest('td');
+  const sel = td.querySelector('.sm-stud-horse');
+  let badge = td.querySelector('.sm-boarder-badge');
+  if(cb.checked){
+    if(sel) sel.style.display = 'none';
+    if(!badge){
+      badge = document.createElement('div');
+      badge.className = 'sm-boarder-badge';
+      badge.style.cssText = 'font-size:11px;padding:4px 6px;background:#D1ECF1;color:#0C5460;border-radius:3px;border:1px solid #80B8E8;margin-bottom:2px';
+      badge.textContent = '🏡 Boarder\'s own horse';
+      td.insertBefore(badge, td.querySelector('label'));
+    }
+  } else {
+    if(sel) sel.style.display = '';
+    if(badge) badge.remove();
+  }
+}
+
+function smAddStudent(){
+  const horseList = getSchedHorses();
+  const horseOpts = `<option value="">— School horse —</option>`+horseList.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
+  const tbody = document.getElementById('smStudentRows');
+  if(!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding:3px 4px;vertical-align:top"><input class="sm-stud-name" value="" placeholder="Student name" style="width:100%;padding:4px 6px;font-size:11px;border:1px solid var(--border);border-radius:3px"></td>
+    <td style="padding:3px 4px;vertical-align:top">
+      <select class="sm-stud-horse" style="width:100%;padding:4px 6px;font-size:11px;border:1px solid var(--border);border-radius:3px">${horseOpts}</select>
+      <label style="display:flex;align-items:center;gap:5px;margin-top:4px;font-size:10px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" class="sm-stud-boarder" onchange="smToggleBoarder(this)" style="margin:0">
+        Boarder's own horse
+      </label>
+    </td>
+    <td style="padding:3px 4px;width:28px;vertical-align:top"><button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);line-height:1;margin-top:3px">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+
+function smRemoveStudent(i){
+  const tbody = document.getElementById('smStudentRows');
+  if(tbody && tbody.rows[i]) tbody.deleteRow(i);
+}
+
+function closeSchedModal(){
+  const o = document.getElementById('schedModalOverlay');
+  if(o) o.style.display='none';
+}
+
+function saveSchedModal(){
+  const timeStr = document.getElementById('sm_time').value||'09:00';
+  const [hh,mm] = timeStr.split(':').map(Number);
+
+  // Collect students with boarderHorse flag
+  const nameEls   = document.querySelectorAll('#smStudentRows .sm-stud-name');
+  const horseEls  = document.querySelectorAll('#smStudentRows .sm-stud-horse');
+  const boardEls  = document.querySelectorAll('#smStudentRows .sm-stud-boarder');
+  const students = [];
+  nameEls.forEach((el,i)=>{
+    const isBoarder = boardEls[i]?.checked || false;
+    students.push({
+      name: el.value.trim(),
+      horse: isBoarder ? '' : (horseEls[i]?.value||''),
+      boarderHorse: isBoarder,
+    });
+  });
+
+  const lesson = {
+    arena:      document.getElementById('sm_arena').value,
+    day:        document.getElementById('sm_day').value,
+    startH:     hh, startM: mm,
+    dur:        parseInt(document.getElementById('sm_dur').value),
+    type:       document.getElementById('sm_type').value,
+    instructor: document.getElementById('sm_instr').value,
+    students:   students.length ? students : [{name:'',horse:'',boarderHorse:false}],
+  };
+  if(schedEditId){
+    const idx = schedLessons.findIndex(l=>l.id===schedEditId);
+    if(idx>=0) schedLessons[idx] = {...schedLessons[idx], ...lesson};
+  } else {
+    schedLessons.push({id:nextSchedId++, ...lesson});
+  }
+  closeSchedModal();
+  renderScheduleCalendar();
+  syncSchedHiddenInputs();
+}
+
+// ── Calendar render ──────────────────────────────
+function renderScheduleCalendar(){
+  const container = document.getElementById('schedCalendar');
+  if(!container) return;
+
+  const allArenas = [...new Set([...getSchedArenas(), ...schedLessons.map(l=>l.arena)])].filter(Boolean);
+  if(!schedLessons.length){
+    container.innerHTML = `<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">No lessons yet — click <strong>＋ Add Lesson</strong> to build your schedule.</div>`;
+    renderSchedSummary(); return;
+  }
+
+  const dayStart = parseInt(document.getElementById('schedDayStart')?.value)||7;
+  const dayEnd   = parseInt(document.getElementById('schedDayEnd')?.value)||20;
+
+  let html = '';
+  allArenas.forEach(arenaName=>{
+    const arenaLessons = schedLessons.filter(l=>l.arena===arenaName);
+    if(!arenaLessons.length) return;
+
+    // Find max simultaneous lessons on any day/hour combo to size sub-columns
+    let maxSimul = 1;
+    DAYS.forEach(d=>{
+      for(let h=dayStart;h<dayEnd;h++){
+        const n = arenaLessons.filter(l=>l.day===d&&l.startH===h).length;
+        if(n>maxSimul) maxSimul=n;
+      }
+    });
+    // Each day column gets enough width for all sub-columns
+    const subColW = 110; // px per simultaneous lesson slot
+    const dayColW = maxSimul * subColW;
+    const tableW  = 64 + DAYS.length * dayColW;
+
+    html += `<div style="margin-bottom:22px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:6px 10px;background:var(--cream);border:1px solid var(--border);border-radius:4px 4px 0 0;display:flex;justify-content:space-between">
+        <span>🏟️ ${esc(arenaName)}</span>
+        <span style="font-weight:400;font-size:10px">${arenaLessons.length} lesson${arenaLessons.length!==1?'s':''}/week</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:${tableW}px;min-width:100%;border-collapse:collapse;border:1px solid var(--border);border-top:none;table-layout:fixed">
+        <colgroup>
+          <col style="width:64px">
+          ${DAYS.map(()=>`<col style="width:${dayColW}px">`).join('')}
+        </colgroup>
+        <thead><tr style="background:var(--cream)">
+          <th style="padding:6px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-right:1px solid var(--border);border-bottom:1px solid var(--border)"></th>`;
+    DAYS.forEach(d=>{
+      const cnt = arenaLessons.filter(l=>l.day===d).length;
+      html+=`<th style="padding:6px 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center">
+        ${d}${cnt?`<span style="display:inline-block;margin-left:5px;font-size:9px;color:var(--sage);font-weight:400">${cnt} lesson${cnt!==1?'s':''}</span>`:''}
+      </th>`;
+    });
+    html+=`</tr></thead><tbody>`;
+
+    for(let h=dayStart; h<dayEnd; h++){
+      const label = h<12?`${h}:00 am`:h===12?'12:00 pm':`${h-12}:00 pm`;
+      html+=`<tr><td style="padding:4px 6px;font-size:9px;color:var(--muted);text-align:right;vertical-align:top;border-right:1px solid var(--border);border-bottom:1px solid #EEE8DA;white-space:nowrap;background:var(--cream)">${label}</td>`;
+
+      DAYS.forEach(d=>{
+        const slot = arenaLessons.filter(l=>l.day===d && l.startH===h);
+        // Always render sub-columns so simultaneous lessons sit side by side at same height
+        if(slot.length === 0){
+          html+=`<td onclick="schedAddLesson('${d}',${h})" title="Click to add a lesson at ${h<12?h+'am':h===12?'12pm':(h-12)+'pm'} on ${d}" style="border-right:1px solid var(--border);border-bottom:1px solid #EEE8DA;min-height:38px;padding:2px;cursor:pointer" onmouseover="this.style.background='#F5F0E8'" onmouseout="this.style.background=''">
+            <div style="color:#C8BFA8;font-size:10px;text-align:center;padding-top:6px;pointer-events:none">＋</div>
+          </td>`;
+        } else {
+          // Use a nested table for sub-columns so they're truly side-by-side at same row level
+          html+=`<td style="border-right:1px solid var(--border);border-bottom:1px solid #EEE8DA;padding:2px;vertical-align:top">`;
+          if(slot.length > 1){
+            html+=`<table style="width:100%;border-collapse:collapse;table-layout:fixed"><tr>`;
+            slot.forEach((l,i)=>{
+              html+=`<td style="vertical-align:top;padding:1px;${i>0?'border-left:1px dashed #D4C9B0':''}">${renderLessonBlock(l)}</td>`;
+            });
+            html+=`</tr></table>`;
+          } else {
+            html += renderLessonBlock(slot[0]);
+          }
+          html+=`<div onclick="schedAddLesson('${d}',${h})" title="Add another lesson at this time" style="cursor:pointer;text-align:center;font-size:9px;color:#B8AFA0;padding:2px 0 1px;border-radius:2px" onmouseover="this.style.color='var(--sage)'" onmouseout="this.style.color='#B8AFA0'">＋ add</div>`;
+          html+=`</td>`;
+        }
+      });
+      html+=`</tr>`;
+    }
+    html+=`</tbody></table></div></div>`;
+  });
+
+  container.innerHTML = html;
+  renderSchedSummary();
+  renderSchedHorseHours();
+}
+
+function renderLessonBlock(l){
+  const lt = LESSON_TYPES[l.type]||LESSON_TYPES.private;
+  const students = l.students||[];
+  const riders = students.length || 1;
+  const boarderCount = students.filter(s=>s.boarderHorse).length;
+  const startMin = l.startM>0?`:${String(l.startM).padStart(2,'0')}` : '';
+  const instrTag = l.instructor?`<div style="font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.instructor)}</div>`:'';
+  const boarderTag = boarderCount>0
+    ? `<div style="font-size:9px;color:#0C5460;background:#D1ECF1;border-radius:2px;padding:1px 4px;display:inline-block;margin-top:1px">🏡 ${boarderCount} boarder${boarderCount>1?'s':''}</div>`
+    : '';
+  return `<div onclick="schedEditLesson(${l.id})" title="Click to edit" style="cursor:pointer;background:${lt.bg};border:1.5px solid ${lt.border};border-radius:3px;padding:4px 6px;margin-bottom:1px">
+    <div style="font-weight:700;font-size:10px;color:var(--brown);white-space:nowrap">${l.startH}${startMin} · ${l.dur}m · ${riders}🧑</div>
+    <div style="font-size:9px;color:var(--brown);opacity:.85">${lt.label}</div>
+    ${boarderTag}
+    ${instrTag}
+  </div>`;
+}
+
+// ── Weekly summary bar ───────────────────────────
+function renderSchedSummary(){
+  const el = document.getElementById('schedSummary');
+  if(!el) return;
+  if(!schedLessons.length){el.innerHTML='';return;}
+  const counts={private:0,group:0,semi:0,eval:0};
+  let totalStudentSlots=0, boarderSlots=0;
+  schedLessons.forEach(l=>{
+    counts[l.type]=(counts[l.type]||0)+1;
+    const studs = l.students||[];
+    totalStudentSlots += studs.length||1;
+    boarderSlots += studs.filter(s=>s.boarderHorse).length;
+  });
+  const schoolHorseSlots = totalStudentSlots - boarderSlots;
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:10px;padding:10px 14px;background:var(--cream);border:1px solid var(--border);border-radius:4px;font-size:12px;align-items:center">
+    <strong style="color:var(--brown)">${schedLessons.length} lessons/week</strong>
+    <span style="color:var(--muted)">·</span>
+    ${counts.private?`<span>🐴 <b>${counts.private}</b> private</span>`:''}
+    ${counts.group  ?`<span>👥 <b>${counts.group}</b> group</span>`:''}
+    ${counts.semi   ?`<span>👫 <b>${counts.semi}</b> semi-private</span>`:''}
+    ${counts.eval   ?`<span>🔍 <b>${counts.eval}</b> eval</span>`:''}
+    <span style="color:var(--muted)">·</span>
+    ${schoolHorseSlots?`<span><b style="color:var(--brown)">${schoolHorseSlots}</b> on school horses</span>`:''}
+    ${boarderSlots?`<span style="background:#D1ECF1;color:#0C5460;padding:2px 7px;border-radius:3px">🏡 <b>${boarderSlots}</b> on boarder's horse</span>`:''}
+  </div>`;
+  syncSchedHiddenInputs();
+}
+
+// ── Horse hours summary ──────────────────────────
+function renderSchedHorseHours(){
+  const el = document.getElementById('schedHorseHours');
+  if(!el) return;
+
+  // Tally hours per horse
+  const horseTotals = {};
+  schedLessons.forEach(l=>{
+    const hrs = l.dur/60;
+    (l.students||[]).forEach(s=>{
+      if(s.horse){
+        horseTotals[s.horse] = (horseTotals[s.horse]||0) + hrs;
+      }
+    });
+  });
+
+  const entries = Object.entries(horseTotals).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){
+    el.innerHTML=`<div style="font-size:11px;color:var(--muted);padding:8px 0">💡 Assign horses to students inside each lesson to see weekly horse hours here.</div>`;
+    return;
+  }
+
+  // Count total lessons per horse too
+  const horseLessons = {};
+  schedLessons.forEach(l=>{
+    (l.students||[]).forEach(s=>{
+      if(s.horse) horseLessons[s.horse] = (horseLessons[s.horse]||0)+1;
+    });
+  });
+
+  const maxHrs = entries[0][1];
+  const rows = entries.map(([name,hrs])=>{
+    const pct = Math.round((hrs/maxHrs)*100);
+    const lessonCount = horseLessons[name]||0;
+    return `<tr>
+      <td style="padding:5px 10px;font-size:12px;font-weight:600;color:var(--brown);white-space:nowrap">${esc(name)}</td>
+      <td style="padding:5px 10px;font-size:12px;color:var(--muted)">${lessonCount} lesson${lessonCount!==1?'s':''}</td>
+      <td style="padding:5px 10px;width:200px">
+        <div style="background:var(--border);border-radius:3px;height:8px;overflow:hidden">
+          <div style="background:var(--sage);height:100%;width:${pct}%;border-radius:3px"></div>
+        </div>
+      </td>
+      <td style="padding:5px 10px;font-size:12px;font-weight:700;color:var(--brown);text-align:right">${hrs%1===0?hrs:hrs.toFixed(1)} hrs/wk</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML=`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">
+    <div style="background:var(--cream);padding:7px 10px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">🐴 Horse Working Hours / Week</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#FDFAF4">
+        <th style="padding:4px 10px;text-align:left;border-bottom:1px solid var(--border)">Horse</th>
+        <th style="padding:4px 10px;text-align:left;border-bottom:1px solid var(--border)">Lessons</th>
+        <th style="padding:4px 10px;border-bottom:1px solid var(--border)"></th>
+        <th style="padding:4px 10px;text-align:right;border-bottom:1px solid var(--border)">Hours</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+// ── Sync hidden inputs for downstream calc ───────
+function syncSchedHiddenInputs(){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  const c={private:0,group:0,semi:0,eval:0};
+  let maxR=1;
+  schedLessons.forEach(l=>{c[l.type]=(c[l.type]||0)+1; const r=(l.students||[]).length||1; if(r>maxR)maxR=r;});
+  set('wkPrivate',c.private); set('wkGroup',c.group); set('wkSemi',c.semi); set('wkEval',c.eval);
+  set('groupRiders',maxR);
+  const instrs=new Set(schedLessons.map(l=>l.instructor).filter(Boolean));
+  set('numInstructors',Math.max(1,instrs.size));
+}
+
+init();
+</script>
+</body>
+</html>
