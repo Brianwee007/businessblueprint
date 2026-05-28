@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Node / package manager (in case we ever add a build step)
+node_modules/
+
+# Local logs / temp
+*.log
+*.tmp
